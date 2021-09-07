@@ -28,13 +28,8 @@ module.exports = (sequelize, DataTypes) => {
   Comments.init({
     uuid: {
       type: DataTypes.UUID,
+      primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
-      allowNull: false,
-      unique: true,
-      validate: {
-        notNull: true,
-        notEmpty: true,
-      },
     },
 
     content: {

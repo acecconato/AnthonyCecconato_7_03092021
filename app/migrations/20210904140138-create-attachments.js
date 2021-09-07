@@ -8,9 +8,9 @@ module.exports = {
         type: Sequelize.INTEGER.UNSIGNED,
       },
       uuid: {
-        type: Sequelize.UUID,
         allowNull: false,
-        unique: true,
+        primaryKey: true,
+        type: Sequelize.UUID,
       },
       filename: {
         type: Sequelize.STRING(255),

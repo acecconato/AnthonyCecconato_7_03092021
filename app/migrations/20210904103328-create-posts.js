@@ -8,9 +8,9 @@ module.exports = {
         type: Sequelize.INTEGER.UNSIGNED,
       },
       uuid: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
         allowNull: false,
+        primaryKey: true,
+        type: Sequelize.UUID,
       },
       userId: {
         type: Sequelize.INTEGER.UNSIGNED,

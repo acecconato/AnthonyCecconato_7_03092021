@@ -27,13 +27,8 @@ module.exports = (sequelize, DataTypes) => {
   Posts.init({
     uuid: {
       type: DataTypes.UUID,
+      primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
-      allowNull: false,
-      unique: true,
-      validate: {
-        notNull: true,
-        notEmpty: true,
-      },
     },
 
     userId: {

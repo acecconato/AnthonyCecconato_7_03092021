@@ -8,8 +8,9 @@ module.exports = {
         type: Sequelize.INTEGER.UNSIGNED,
       },
       uuid: {
-        type: Sequelize.STRING,
         allowNull: false,
+        primaryKey: true,
+        type: Sequelize.UUID,
       },
       content: {
         type: Sequelize.TEXT,
