@@ -1,6 +1,5 @@
-const {
-  Model,
-} = require('sequelize');
+const { Model } = require('sequelize');
+const argon2 = require('argon2');
 
 module.exports = (sequelize, DataTypes) => {
   class Users extends Model {
@@ -22,20 +21,21 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(CommentsReports, { foreignKey: 'userId', as: 'reportedComments', onDelete: 'cascade' });
     }
 
-    toJSON() {
-      return { ...this.get(), id: undefined, password: undefined };
+    // toJSON() {
+    //   return { ...this.get(), password: undefined };
+    // }
+
+    async comparePassword(plainPassword) {
+      return argon2.verify(this.password, plainPassword);
     }
   }
+
   Users.init({
+    // todo mettre id ici finir jwt
     uuid: {
       type: DataTypes.UUID,
+      primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
-      allowNull: false,
-      unique: true,
-      validate: {
-        notNull: true,
-        notEmpty: true,
-      },
     },
 
     email: {
@@ -80,6 +80,10 @@ module.exports = (sequelize, DataTypes) => {
         notNull: true,
         notEmpty: true,
         len: [0, 30],
+        isIn: {
+          args: [['user', 'admin']],
+          msg: 'Invalid role provided. Should be user or admin',
+        },
       },
     },
 
@@ -116,5 +120,16 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Users',
   });
+
+  const hashPassword = async (user) => {
+    if (user.changed('password')) {
+      const hash = await argon2.hash(user.password);
+      user.setDataValue('password', hash);
+    }
+  };
+
+  Users.beforeCreate(hashPassword);
+  Users.beforeUpdate(hashPassword);
+
   return Users;
 };

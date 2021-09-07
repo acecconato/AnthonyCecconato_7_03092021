@@ -1,22 +1,19 @@
 const jwt = require('jsonwebtoken');
 
-/**
- * Check if the json web token is valid then add the user in the request object
- * @param req
- * @param res
- * @param next
- */
+const { Users } = require('../models');
+
 module.exports = (req, res, next) => {
   if (!req.token) {
-    return res.status(401).json('Authentication failed');
+    return res.status(403).json('No token provided');
   }
 
-  jwt.verify(req.token, process.env.SECRET, (error, user) => {
-    if (error) {
-      return res.status(403).json(error);
+  jwt.verify(req.token, process.env.SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({
+        message: 'Unauthorized',
+      });
     }
-
-    req.user = user;
+    req.userId = decoded.id;
     next();
   });
 };

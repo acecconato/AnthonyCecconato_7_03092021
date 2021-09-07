@@ -1,4 +1,7 @@
-exports.getAllUsers = (req, res) => res.json('test');
+exports.getAllUsers = (req, res) => {
+  console.log(req.userId);
+  return res.status(200).send('Public Content.');
+};
 
 exports.getUserByUUID = (req, res) => {
 
