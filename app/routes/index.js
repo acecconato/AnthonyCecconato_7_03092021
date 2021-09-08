@@ -12,7 +12,7 @@ const commentsRoutes = require('./comments.routes');
 
 const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000, // 15mns
-  delayAfter: 3,
+  delayAfter: 1000,
   delayMs: 500, // 500ms
 });
 

@@ -16,19 +16,20 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Votes.init({
-    userId: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false,
-      validate: {
-        isInt: true,
-      },
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-    postId: {
-      type: DataTypes.INTEGER.UNSIGNED,
+
+    userId: {
+      type: DataTypes.UUID,
       allowNull: false,
-      validate: {
-        isInt: true,
-      },
+    },
+
+    postId: {
+      type: DataTypes.UUID,
+      allowNull: false,
     },
   }, {
     sequelize,

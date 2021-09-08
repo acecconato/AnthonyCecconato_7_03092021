@@ -2,33 +2,38 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('PostsReports', {
       id: {
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
-        type: Sequelize.INTEGER.UNSIGNED,
       },
+
       userId: {
-        type: Sequelize.INTEGER.UNSIGNED,
+        type: Sequelize.UUID,
         allowNull: false,
         onDelete: 'CASCADE',
+        primaryKey: true,
         references: {
           model: 'Users',
           key: 'id',
         },
       },
+
       postId: {
-        type: Sequelize.INTEGER.UNSIGNED,
+        type: Sequelize.UUID,
         allowNull: false,
         onDelete: 'CASCADE',
+        primaryKey: true,
         references: {
           model: 'Posts',
           key: 'id',
         },
       },
+
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
       },
+
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,

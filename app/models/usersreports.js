@@ -16,19 +16,20 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   UsersReports.init({
-    reportedUserId: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false,
-      validate: {
-        isInt: true,
-      },
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-    fromUserId: {
-      type: DataTypes.INTEGER.UNSIGNED,
+
+    reportedUserId: {
+      type: DataTypes.UUID,
       allowNull: false,
-      validate: {
-        isInt: true,
-      },
+    },
+
+    fromUserId: {
+      type: DataTypes.UUID,
+      allowNull: false,
     },
   }, {
     sequelize,

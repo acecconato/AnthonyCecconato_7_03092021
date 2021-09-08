@@ -1,6 +1,5 @@
-const {
-  Model,
-} = require('sequelize');
+const { Model } = require('sequelize');
+const argon2 = require('argon2');
 
 module.exports = (sequelize, DataTypes) => {
   class Users extends Model {
@@ -10,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate({
-      Posts, Comments, PostsReports, Votes, UsersReports, CommentsReports,
+      Posts, Comments, PostsReports, Votes, UsersReports, CommentsReports, RefreshTokens,
     }) {
       // define association here
       this.hasMany(Posts, { foreignKey: 'userId', as: 'posts', onDelete: 'set null' });
@@ -20,26 +19,29 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(UsersReports, { foreignKey: 'fromUserId', as: 'reportedUsers', onDelete: 'cascade' });
       this.hasMany(UsersReports, { foreignKey: 'reportedUserId', as: 'reports', onDelete: 'cascade' });
       this.hasMany(CommentsReports, { foreignKey: 'userId', as: 'reportedComments', onDelete: 'cascade' });
+      this.hasMany(RefreshTokens, { foreignKey: 'userId', as: 'refreshTokens', onDelete: 'cascade' });
     }
 
     toJSON() {
-      return { ...this.get(), id: undefined, password: undefined };
+      return { ...this.get(), password: undefined };
+    }
+
+    async comparePassword(plainPassword) {
+      return argon2.verify(this.password, plainPassword);
     }
   }
+
   Users.init({
-    uuid: {
+    id: {
       type: DataTypes.UUID,
+      primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
-      allowNull: false,
-      unique: true,
-      validate: {
-        notNull: true,
-        notEmpty: true,
-      },
     },
 
     email: {
       type: DataTypes.STRING(60),
+      lowercase: true,
+      trim: true,
       allowNull: false,
       unique: true,
       validate: {
@@ -64,6 +66,8 @@ module.exports = (sequelize, DataTypes) => {
     username: {
       type: DataTypes.STRING(30),
       allowNull: false,
+      trim: true,
+      lowercase: true,
       unique: true,
       validate: {
         notNull: true,
@@ -80,11 +84,16 @@ module.exports = (sequelize, DataTypes) => {
         notNull: true,
         notEmpty: true,
         len: [0, 30],
+        isIn: {
+          args: [['user', 'admin']],
+          msg: 'Invalid role provided. Should be user or admin',
+        },
       },
     },
 
     firstName: {
       type: DataTypes.STRING(30),
+      trim: true,
       validate: {
         len: [0, 30],
         is: {
@@ -96,6 +105,7 @@ module.exports = (sequelize, DataTypes) => {
 
     lastName: {
       type: DataTypes.STRING(30),
+      trim: true,
       validate: {
         len: [0, 30],
         is: {
@@ -116,5 +126,16 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Users',
   });
+
+  const hashPassword = async (user) => {
+    if (user.changed('password')) {
+      const hash = await argon2.hash(user.password);
+      user.setDataValue('password', hash);
+    }
+  };
+
+  Users.beforeCreate(hashPassword);
+  Users.beforeUpdate(hashPassword);
+
   return Users;
 };

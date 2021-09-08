@@ -15,33 +15,20 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       this.belongsTo(Users, { foreignKey: 'userId', as: 'user' });
       this.hasMany(Comments, { foreignKey: 'postId', as: 'comments', onDelete: 'CASCADE' });
-      this.hasOne(Attachments, { foreignKey: 'postId', as: 'attachment', onDelete: 'CASCADE' });
       this.hasMany(PostsReports, { foreignKey: 'postId', as: 'reports', onDelete: 'CASCADE' });
       this.hasMany(Votes, { foreignKey: 'postId', as: 'votes', onDelete: 'cascade' });
     }
-
-    toJSON() {
-      return { ...this.get(), id: undefined, userId: undefined };
-    }
   }
   Posts.init({
-    uuid: {
+    id: {
       type: DataTypes.UUID,
+      primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
-      allowNull: false,
-      unique: true,
-      validate: {
-        notNull: true,
-        notEmpty: true,
-      },
     },
 
     userId: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.UUID,
       allowNull: false,
-      validate: {
-        isInt: true,
-      },
     },
 
     content: {
