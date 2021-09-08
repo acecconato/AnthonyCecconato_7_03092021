@@ -1,5 +1,5 @@
 public/uploads/*
-cache/*
+persistent-cache/*
 
 .idea
 # Created by https://www.toptal.com/developers/gitignore/api/node,phpstorm,macos,visualstudiocode
