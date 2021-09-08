@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(Posts, { foreignKey: 'postId', as: 'post' });
     }
   }
+
   PostsReports.init({
     id: {
       type: DataTypes.UUID,
@@ -34,6 +35,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'PostsReports',
+    timestamps: false,
   });
+
   return PostsReports;
 };
