@@ -1,5 +1,3 @@
-const cache = require('../services/cache');
-
 // public
 exports.getAllUsers = (req, res) => {
   // cache.putSync(`jwt${req.user.id}`, { ...cache.getSync(`jwt${req.user.id}`), isRevoked: true });

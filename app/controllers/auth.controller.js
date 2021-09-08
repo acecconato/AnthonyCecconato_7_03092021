@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 
 const cache = require('../services/cache');
+const errorHandler = require('../services/errorHandler');
 const { Users, RefreshTokens } = require('../models');
 
 /**
@@ -33,8 +34,7 @@ exports.login = async (req, res) => {
       refreshToken,
     });
   } catch (e) {
-    console.error(e);
-    return res.status(500).json(e);
+    errorHandler(e, res);
   }
 };
 
@@ -61,8 +61,7 @@ exports.signup = async (req, res) => {
       ...user.dataValues, password: undefined, createdAt: undefined, updatedAt: undefined,
     });
   } catch (e) {
-    console.error(e);
-    return res.status(500).json(e);
+    errorHandler(e, res);
   }
 };
 
@@ -109,7 +108,6 @@ exports.refreshToken = async (req, res, next) => {
       refreshToken: refreshToken.token,
     });
   } catch (e) {
-    console.error(e);
-    return res.status(500).json(e);
+    errorHandler(e, res);
   }
 };
