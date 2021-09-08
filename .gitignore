@@ -1,5 +1,6 @@
 public/uploads/*
-var/cache/*
+cache/*
+
 .idea
 # Created by https://www.toptal.com/developers/gitignore/api/node,phpstorm,macos,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,phpstorm,macos,visualstudiocode
