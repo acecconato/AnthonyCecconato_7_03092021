@@ -21,9 +21,9 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(CommentsReports, { foreignKey: 'userId', as: 'reportedComments', onDelete: 'cascade' });
     }
 
-    // toJSON() {
-    //   return { ...this.get(), password: undefined };
-    // }
+    toJSON() {
+      return { ...this.get(), id: undefined, password: undefined };
+    }
 
     async comparePassword(plainPassword) {
       return argon2.verify(this.password, plainPassword);
@@ -31,7 +31,6 @@ module.exports = (sequelize, DataTypes) => {
   }
 
   Users.init({
-    // todo mettre id ici finir jwt
     uuid: {
       type: DataTypes.UUID,
       primaryKey: true,
@@ -40,6 +39,8 @@ module.exports = (sequelize, DataTypes) => {
 
     email: {
       type: DataTypes.STRING(60),
+      lowercase: true,
+      trim: true,
       allowNull: false,
       unique: true,
       validate: {
@@ -64,6 +65,8 @@ module.exports = (sequelize, DataTypes) => {
     username: {
       type: DataTypes.STRING(30),
       allowNull: false,
+      trim: true,
+      lowercase: true,
       unique: true,
       validate: {
         notNull: true,
@@ -89,6 +92,7 @@ module.exports = (sequelize, DataTypes) => {
 
     firstName: {
       type: DataTypes.STRING(30),
+      trim: true,
       validate: {
         len: [0, 30],
         is: {
@@ -100,6 +104,7 @@ module.exports = (sequelize, DataTypes) => {
 
     lastName: {
       type: DataTypes.STRING(30),
+      trim: true,
       validate: {
         len: [0, 30],
         is: {

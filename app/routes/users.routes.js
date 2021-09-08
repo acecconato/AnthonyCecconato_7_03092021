@@ -2,12 +2,12 @@ const express = require('express');
 
 const router = express.Router();
 
-const verifyToken = require('../middlewares/auth.middleware');
+const { authMiddleware: auth } = require('../middlewares');
 
 const usersController = require('../controllers/users.controller');
 
-router.get('/', verifyToken, usersController.getAllUsers);
-router.get('/:uuid', usersController.getUserByUUID);
+router.get('/', auth.isLoggedIn, auth.hasRole('user'), usersController.getAllUsers);
+router.get('/:uuid', auth.hasRole('user'), usersController.getUserByUUID);
 
 router.delete('/:uuid', usersController.deleteUser);
 
