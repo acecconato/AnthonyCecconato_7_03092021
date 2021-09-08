@@ -15,7 +15,6 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       this.belongsTo(Users, { foreignKey: 'userId', as: 'user' });
       this.hasMany(Comments, { foreignKey: 'postId', as: 'comments', onDelete: 'CASCADE' });
-      this.hasOne(Attachments, { foreignKey: 'postId', as: 'attachment', onDelete: 'CASCADE' });
       this.hasMany(PostsReports, { foreignKey: 'postId', as: 'reports', onDelete: 'CASCADE' });
       this.hasMany(Votes, { foreignKey: 'postId', as: 'votes', onDelete: 'cascade' });
     }

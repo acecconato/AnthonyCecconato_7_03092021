@@ -6,8 +6,8 @@ const { authMiddleware: auth } = require('../middlewares');
 
 const usersController = require('../controllers/users.controller');
 
-router.get('/', auth.isLoggedIn, auth.hasRole('user'), usersController.getAllUsers);
-router.get('/:uuid', auth.hasRole('user'), usersController.getUserByUUID);
+router.get('/', auth.isLoggedIn, usersController.getAllUsers);
+router.get('/:uuid', usersController.getUserByUUID);
 
 router.delete('/:uuid', usersController.deleteUser);
 
