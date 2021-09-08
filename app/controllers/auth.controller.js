@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+
+const cache = require('../services/cache');
 const { Users, RefreshTokens } = require('../models');
 
 /**
@@ -18,8 +20,12 @@ exports.login = async (req, res) => {
 
     const expiresIn = parseInt(process.env.JWT_EXP);
 
-    const accessToken = jwt.sign({ uuid: user.uuid, role: user.role }, process.env.SECRET, { expiresIn });
+    const accessToken = jwt.sign({ uuid: user.id, role: user.role }, process.env.SECRET, { expiresIn });
     const refreshToken = await RefreshTokens.createToken(user);
+
+    /* Used for revoke access:
+    * We store the current access and refresh tokens, so we can check their validity in our authentication middleware */
+    cache.putSync(`jwt${user.id}`, { accessToken, refreshToken, isRevoked: false });
 
     return res.json({
       userId: user.id,
@@ -89,7 +95,14 @@ exports.refreshToken = async (req, res, next) => {
     const expiresIn = parseInt(process.env.JWT_EXP);
 
     const user = await refreshToken.getUser();
-    const newAccessToken = jwt.sign({ uuid: user.uuid, role: user.role }, process.env.SECRET, { expiresIn });
+    const newAccessToken = jwt.sign({ uuid: user.id, role: user.role }, process.env.SECRET, { expiresIn });
+
+    const cachedToken = cache.getSync(`jwt${user.id}`);
+    if (cachedToken && cachedToken.isRevoked && cachedToken.isRevoked === true) {
+      return res.status(403).json({ message: 'The token is revoked' });
+    }
+
+    cache.putSync(`jwt${user.id}`, { accessToken: newAccessToken, refreshToken: refreshToken.token, isRevoked: false });
 
     return res.json({
       accessToken: newAccessToken,

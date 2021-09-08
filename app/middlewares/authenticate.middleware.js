@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 
+const cache = require('../services/cache');
+
 const { TokenExpiredError } = jwt;
 
 /**
@@ -16,7 +18,23 @@ const isLoggedIn = (req, res, next) => {
 
   jwt.verify(req.token, process.env.SECRET, (err, decoded) => {
     if (err) {
-      return _catchError(err, res);
+      if (err instanceof TokenExpiredError) {
+        return res.status(401).send({ message: 'The access token is expired' });
+      }
+
+      return res.status(401).send({ message: 'The access token is not valid' });
+    }
+
+    // Json web token revoke system
+    const cachedToken = cache.getSync(`jwt${decoded.uuid}`);
+    if (cachedToken) {
+      if (!cachedToken.accessToken || cachedToken.accessToken !== req.token) {
+        return res.status(403).json({ message: 'The cached token and the current token doesn\'t matches' });
+      }
+
+      if (cachedToken.isRevoked) {
+        return res.status(403).json({ message: 'The access token is revoked' });
+      }
     }
 
     req.user = {
@@ -50,21 +68,6 @@ const hasRole = (role) => async (req, res, next) => {
     console.error(e);
     return res.status(500).json(e);
   }
-};
-
-/**
- * Catch jwt authentication errors
- * @param err
- * @param res
- * @return {this|*}
- * @private
- */
-const _catchError = (err, res) => {
-  if (err instanceof TokenExpiredError) {
-    return res.status(401).send({ message: 'The access token is expired' });
-  }
-
-  return res.sendStatus(401).send({ message: 'The access token is not valid' });
 };
 
 module.exports = {

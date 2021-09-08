@@ -1,6 +1,10 @@
+const cache = require('../services/cache');
+
 // public
 exports.getAllUsers = (req, res) => {
-  console.log('ok');
+  // cache.putSync(`jwt${req.user.id}`, { ...cache.getSync(`jwt${req.user.id}`), isRevoked: true });
+  // console.log(cache.getSync(`jwt${req.user.id}`));
+  console.log();
   return res.status(200).send('Public Content.');
 };
 
