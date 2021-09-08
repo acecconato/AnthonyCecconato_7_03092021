@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate({
-      Posts, Comments, PostsReports, Votes, UsersReports, CommentsReports,
+      Posts, Comments, PostsReports, Votes, UsersReports, CommentsReports, RefreshTokens,
     }) {
       // define association here
       this.hasMany(Posts, { foreignKey: 'userId', as: 'posts', onDelete: 'set null' });
@@ -19,10 +19,11 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(UsersReports, { foreignKey: 'fromUserId', as: 'reportedUsers', onDelete: 'cascade' });
       this.hasMany(UsersReports, { foreignKey: 'reportedUserId', as: 'reports', onDelete: 'cascade' });
       this.hasMany(CommentsReports, { foreignKey: 'userId', as: 'reportedComments', onDelete: 'cascade' });
+      this.hasMany(RefreshTokens, { foreignKey: 'userId', as: 'refreshTokens', onDelete: 'cascade' });
     }
 
     toJSON() {
-      return { ...this.get(), id: undefined, password: undefined };
+      return { ...this.get(), password: undefined };
     }
 
     async comparePassword(plainPassword) {
@@ -31,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
   }
 
   Users.init({
-    uuid: {
+    id: {
       type: DataTypes.UUID,
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,

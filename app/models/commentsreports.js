@@ -16,19 +16,20 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   CommentsReports.init({
-    userId: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false,
-      validate: {
-        isInt: true,
-      },
+    id: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
     },
-    commentId: {
-      type: DataTypes.INTEGER.UNSIGNED,
+
+    userId: {
+      type: DataTypes.UUID,
       allowNull: false,
-      validate: {
-        isInt: true,
-      },
+    },
+
+    commentId: {
+      type: DataTypes.UUID,
+      allowNull: false,
     },
   }, {
     sequelize,

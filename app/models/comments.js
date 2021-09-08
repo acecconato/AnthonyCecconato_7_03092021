@@ -15,18 +15,9 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(Posts, { foreignKey: 'postId', as: 'post' });
       this.hasMany(CommentsReports, { foreignKey: 'commentId', as: 'reports' });
     }
-
-    toJSON() {
-      return {
-        ...this.get(),
-        id: undefined,
-        userId: undefined,
-        postId: undefined,
-      };
-    }
   }
   Comments.init({
-    uuid: {
+    id: {
       type: DataTypes.UUID,
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
@@ -43,18 +34,12 @@ module.exports = (sequelize, DataTypes) => {
     },
 
     postId: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.UUID,
       allowNull: false,
-      validate: {
-        isInt: true,
-      },
     },
 
     userId: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      validate: {
-        isInt: true,
-      },
+      type: DataTypes.UUID,
     },
   }, {
     sequelize,

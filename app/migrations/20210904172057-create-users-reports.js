@@ -2,13 +2,14 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('UsersReports', {
       id: {
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER.UNSIGNED,
       },
+
       reportedUserId: {
-        type: Sequelize.INTEGER.UNSIGNED,
+        type: Sequelize.UUID,
         allowNull: false,
         onDelete: 'CASCADE',
         references: {
@@ -16,8 +17,9 @@ module.exports = {
           key: 'id',
         },
       },
+
       fromUserId: {
-        type: Sequelize.INTEGER.UNSIGNED,
+        type: Sequelize.UUID,
         allowNull: false,
         onDelete: 'CASCADE',
         references: {
@@ -25,10 +27,12 @@ module.exports = {
           key: 'id',
         },
       },
+
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
       },
+
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,

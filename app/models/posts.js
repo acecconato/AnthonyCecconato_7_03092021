@@ -19,24 +19,17 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(PostsReports, { foreignKey: 'postId', as: 'reports', onDelete: 'CASCADE' });
       this.hasMany(Votes, { foreignKey: 'postId', as: 'votes', onDelete: 'cascade' });
     }
-
-    toJSON() {
-      return { ...this.get(), id: undefined, userId: undefined };
-    }
   }
   Posts.init({
-    uuid: {
+    id: {
       type: DataTypes.UUID,
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
     },
 
     userId: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.UUID,
       allowNull: false,
-      validate: {
-        isInt: true,
-      },
     },
 
     content: {
