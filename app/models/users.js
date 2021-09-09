@@ -16,8 +16,6 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(Comments, { foreignKey: 'userId', as: 'comments', onDelete: 'set null' });
       this.hasMany(PostsReports, { foreignKey: 'userId', as: 'reportedPosts', onDelete: 'cascade' });
       this.hasMany(Votes, { foreignKey: 'userId', as: 'votes', onDelete: 'cascade' });
-      this.hasMany(UsersReports, { foreignKey: 'fromUserId', as: 'reportedUsers', onDelete: 'cascade' });
-      this.hasMany(UsersReports, { foreignKey: 'reportedUserId', as: 'reports', onDelete: 'cascade' });
       this.hasMany(CommentsReports, { foreignKey: 'userId', as: 'reportedComments', onDelete: 'cascade' });
       this.hasMany(RefreshTokens, { foreignKey: 'userId', as: 'refreshTokens', onDelete: 'cascade' });
     }
@@ -48,7 +46,7 @@ module.exports = (sequelize, DataTypes) => {
         notNull: true,
         notEmpty: true,
         isEmail: true,
-        len: [0, 60],
+        len: [5, 60],
       },
     },
 
@@ -72,7 +70,7 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         notNull: true,
         notEmpty: true,
-        len: [0, 30],
+        len: [3, 30],
       },
     },
 
@@ -86,7 +84,7 @@ module.exports = (sequelize, DataTypes) => {
         len: [0, 30],
         isIn: {
           args: [['user', 'admin']],
-          msg: 'Invalid role provided. Should be user or admin',
+          msg: 'Invalid role provided. Must be user or admin',
         },
       },
     },
@@ -95,7 +93,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(30),
       trim: true,
       validate: {
-        len: [0, 30],
+        len: [3, 30],
         is: {
           args: /\b([A-ZÀ-ÿ][-,a-z. ']+[ ]*)+/i,
           msg: 'The specified first name is not in a valid format',
@@ -107,7 +105,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(30),
       trim: true,
       validate: {
-        len: [0, 30],
+        len: [3, 30],
         is: {
           args: /\b([A-ZÀ-ÿ][-,a-z. ']+[ ]*)+/i,
           msg: 'The specified last name is not in a valid format',

@@ -7,13 +7,13 @@ const { authMiddleware: auth } = require('../middlewares');
 const usersController = require('../controllers/users.controller');
 
 router.get('/', auth.isLoggedIn, usersController.getAllUsers);
-router.get('/:uuid', usersController.getUserByUUID);
+router.get('/:id', usersController.getUserById);
 
-router.delete('/:uuid', usersController.deleteUser);
+router.delete('/:id', usersController.deleteUser);
 
-router.put('/:uuid', usersController.updateUser);
-router.put('/:uuid/update-password', usersController.updateUserPassword);
+router.patch('/:id', auth.hasRole('admin'), usersController.updateUser);
 
-router.post('/:uuid/reports', usersController.reportUser);
+router.post('/:id/update-password', usersController.updateUserPassword);
+router.post('/:id/reports', usersController.reportUser);
 
 module.exports = router;

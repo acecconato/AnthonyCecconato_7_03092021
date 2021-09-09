@@ -3,10 +3,12 @@ const jwt = require('jsonwebtoken');
 const cache = require('../services/cache');
 const errorHandler = require('../services/errorHandler');
 const { Users, RefreshTokens } = require('../models');
+const { revokeAccess } = require('../middlewares/authenticate.middleware');
 
 /**
- * Login then create a json web token
- * The token can be passed through the Authorization: Bearer header to authenticate a user
+ * Login then create an access token and a refresh token
+ * The access token can be passed through the Authorization: Bearer header to authenticate a user
+ * The refresh token can be used with the /refresh-token route
  * @param req
  * @param res
  * @return {Promise<*>}
@@ -26,13 +28,36 @@ exports.login = async (req, res) => {
 
     /* Used for revoke access:
     * We store the current access and refresh tokens, so we can check their validity in our authentication middleware */
-    cache.putSync(`jwt${user.id}`, { accessToken, refreshToken, isRevoked: false });
+    cache.setItem(`jwt${user.id}`, JSON.stringify({ accessToken, refreshToken, isRevoked: false }));
 
     return res.json({
       userId: user.id,
       accessToken,
       refreshToken,
     });
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Logout
+ * @param req
+ * @param res
+ * @return {Promise<*>}
+ */
+exports.logout = async (req, res) => {
+  try {
+    const user = await Users.findOne({ where: { id: req.user.id } });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await revokeAccess(user);
+    await RefreshTokens.destroy({ where: { userId: user.id } });
+
+    return res.status(204).send();
   } catch (e) {
     errorHandler(e, res);
   }
@@ -96,12 +121,12 @@ exports.refreshToken = async (req, res, next) => {
     const user = await refreshToken.getUser();
     const newAccessToken = jwt.sign({ uuid: user.id, role: user.role }, process.env.SECRET, { expiresIn });
 
-    const cachedToken = cache.getSync(`jwt${user.id}`);
+    const cachedToken = JSON.parse(cache.getItem(`jwt${user.id}`));
     if (cachedToken && cachedToken.isRevoked && cachedToken.isRevoked === true) {
       return res.status(403).json({ message: 'The token is revoked' });
     }
 
-    cache.putSync(`jwt${user.id}`, { accessToken: newAccessToken, refreshToken: refreshToken.token, isRevoked: false });
+    cache.setItem(`jwt${user.id}`, JSON.stringify({ accessToken: newAccessToken, refreshToken: refreshToken.token, isRevoked: false }));
 
     return res.json({
       accessToken: newAccessToken,

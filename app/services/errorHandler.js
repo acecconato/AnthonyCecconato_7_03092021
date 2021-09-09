@@ -7,7 +7,7 @@
 const Sequelize = require('sequelize');
 
 module.exports = (e, res) => {
-  if (e instanceof Sequelize.UniqueConstraintError) {
+  if (e instanceof Sequelize.UniqueConstraintError || e instanceof Sequelize.ValidationError) {
     return res.status(422).json(e.errors);
   }
 

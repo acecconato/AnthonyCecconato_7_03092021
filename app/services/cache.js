@@ -1,9 +1,5 @@
-const persistentCache = require('persistent-cache');
+const { LocalStorage } = require('node-localstorage');
 
-const cache = persistentCache({
-  base: 'var',
-  name: 'persistent-cache',
-  duration: 1000 * 3600 * 24,
-});
+const localStorage = new LocalStorage('var/cache/local-storage');
 
-module.exports = cache;
+module.exports = localStorage;
