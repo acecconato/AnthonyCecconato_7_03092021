@@ -31,18 +31,6 @@ module.exports = {
         defaultValue: 'user',
       },
 
-      firstName: {
-        type: Sequelize.STRING(30),
-      },
-
-      lastName: {
-        type: Sequelize.STRING(30),
-      },
-
-      birthdate: {
-        type: Sequelize.DATE,
-      },
-
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

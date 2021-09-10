@@ -14,6 +14,5 @@ router.delete('/:id', usersController.deleteUser);
 router.patch('/:id', auth.hasRole('admin'), usersController.updateUser);
 
 router.post('/:id/update-password', usersController.updateUserPassword);
-router.post('/:id/reports', usersController.reportUser);
 
 module.exports = router;

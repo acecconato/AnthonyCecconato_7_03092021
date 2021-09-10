@@ -14,14 +14,14 @@ const { revokeAccess } = require('../middlewares/authenticate.middleware');
  */
 exports.getAllUsers = async (req, res, next) => {
   const page = parseInt(req.query.page) || 0;
-  const limit = 2;
+  const limit = parseInt(process.env.ITEMS_PER_PAGE);
   const offset = (page * limit);
 
   try {
     const datas = await Users.findAndCountAll({
       offset,
       limit,
-      attributes: ['id', 'email', 'username', 'role', 'firstName', 'lastName'],
+      attributes: ['id', 'email', 'username', 'role'],
       order: [['createdAt', 'DESC']],
     });
 
@@ -141,14 +141,12 @@ exports.updateUser = async (req, res, next) => {
     return next();
   }
 
-  const {
-    email, username, role, firstName, lastName,
-  } = req.body || undefined;
+  const { email, username, role } = req.body || undefined;
 
   try {
     const user = await Users.findOne({
       where: { id },
-      attributes: ['id', 'email', 'username', 'role', 'firstName', 'lastName'],
+      attributes: ['id', 'email', 'username', 'role'],
     });
 
     if (!user) {
@@ -158,8 +156,6 @@ exports.updateUser = async (req, res, next) => {
     user.username = username || user.username;
     user.email = email || user.email;
     user.role = role || user.role;
-    user.firstName = firstName || user.firstName;
-    user.lastName = lastName || user.lastName;
 
     const datas = await user.save();
 

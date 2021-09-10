@@ -72,14 +72,7 @@ exports.logout = async (req, res) => {
 exports.signup = async (req, res) => {
   try {
     const user = await Users.create(req.body, {
-      fields: [
-        'email',
-        'password',
-        'username',
-        'firstName',
-        'lastName',
-        'birthdate',
-      ],
+      fields: ['email', 'password', 'username'],
     });
 
     return res.status(201).json({

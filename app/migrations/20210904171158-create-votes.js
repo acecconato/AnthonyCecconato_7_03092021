@@ -27,6 +27,11 @@ module.exports = {
           key: 'id',
         },
       },
+
+      vote: {
+        type: Sequelize.ENUM(['-1', '0', '1']),
+        allowNull: false,
+      },
     });
   },
   down: async (queryInterface, Sequelize) => {

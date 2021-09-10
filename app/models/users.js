@@ -89,37 +89,6 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
 
-    firstName: {
-      type: DataTypes.STRING(30),
-      trim: true,
-      validate: {
-        len: [3, 30],
-        is: {
-          args: /\b([A-ZÀ-ÿ][-,a-z. ']+[ ]*)+/i,
-          msg: 'The specified first name is not in a valid format',
-        },
-      },
-    },
-
-    lastName: {
-      type: DataTypes.STRING(30),
-      trim: true,
-      validate: {
-        len: [3, 30],
-        is: {
-          args: /\b([A-ZÀ-ÿ][-,a-z. ']+[ ]*)+/i,
-          msg: 'The specified last name is not in a valid format',
-        },
-      },
-    },
-
-    birthdate: {
-      type: DataTypes.DATE,
-      validate: {
-        isDate: true,
-      },
-    },
-
   }, {
     sequelize,
     modelName: 'Users',
