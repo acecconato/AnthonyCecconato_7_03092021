@@ -350,6 +350,13 @@ exports.reportPost = async (req, res, next) => {
   }
 };
 
+/**
+ * Get reports related to a post
+ * @param req
+ * @param res
+ * @param next
+ * @return {Promise<*>}
+ */
 exports.getPostReports = async (req, res, next) => {
   const { id } = req.params;
 
