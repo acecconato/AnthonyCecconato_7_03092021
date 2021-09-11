@@ -6,7 +6,7 @@ const { authMiddleware: auth } = require('../middlewares');
 
 const usersController = require('../controllers/users.controller');
 
-router.get('/', auth.isLoggedIn, usersController.getAllUsers);
+router.get('/', usersController.getAllUsers);
 router.get('/:id', usersController.getUserById);
 
 router.delete('/:id', usersController.deleteUser);

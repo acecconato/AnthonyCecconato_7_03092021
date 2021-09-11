@@ -11,9 +11,7 @@ const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 
-const {
-  sequelize, Users, Posts, Comments, UsersReports,
-} = require('./app/models');
+const { sequelize } = require('./app/models');
 
 // Load .env configuration
 require('dotenv').config();

@@ -199,7 +199,7 @@ exports.updatePost = async (req, res, next) => {
       return res.status(403).json({ message: 'Insufficient rights' });
     }
 
-    post.content = content || post.username;
+    post.content = content || post.content;
 
     const datas = await post.save();
 
@@ -273,7 +273,7 @@ exports.getPostComments = async (req, res, next) => {
 };
 
 /**
- * Downvote, cancel a vote or upvote a post (-1, 0, 1)
+ * Vote for a post (-1, 0, 1)
  * @param req
  * @param res
  * @param next
