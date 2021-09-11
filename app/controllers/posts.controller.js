@@ -1,6 +1,7 @@
 const hateoas = require('halson');
 const { validate: isUUID } = require('uuid');
 
+const { getPagination, getPagingData } = require('../services/paginator');
 const errorHandler = require('../services/errorHandler');
 const {
   Posts, Users, Comments, Votes, PostsReports,
@@ -45,10 +46,9 @@ exports.publish = async (req, res) => {
  * @param next
  * @return {Promise<*>}
  */
-exports.getAllPosts = async (req, res, next) => {
-  const page = parseInt(req.query.page) || 0;
-  const limit = parseInt(process.env.ITEMS_PER_PAGE);
-  const offset = (page * limit);
+exports.getAllPosts = async (req, res) => {
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
 
   try {
     const datas = await Posts.findAndCountAll({
@@ -70,32 +70,9 @@ exports.getAllPosts = async (req, res, next) => {
       .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
       .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` }));
 
-    const totalPage = (datas.count / limit);
-    let previousPage;
+    const paginatedPosts = getPagingData(datas, posts, req.baseUrl, page, limit);
 
-    if (page > 0 && (page) < totalPage + 1) {
-      previousPage = page - 1;
-    }
-
-    if (page > 0 && (page) >= totalPage + 1) {
-      return next();
-    }
-
-    const nextPage = ((page + 1) <= totalPage) ? page + 1 : undefined;
-
-    const metadata = hateoas({
-      total: datas.count, limit, offset, currentPage: page,
-    });
-
-    if (previousPage !== undefined) {
-      metadata.addLink('previous', { method: 'GET', href: `${process.env.apiBaseDir}/posts?page=${previousPage}` });
-    }
-
-    if (nextPage) {
-      metadata.addLink('next', { method: 'GET', href: `${process.env.apiBaseDir}/posts?page=${nextPage}` });
-    }
-
-    return res.json({ metadata, posts });
+    return res.json(paginatedPosts);
   } catch (e) {
     errorHandler(e, res);
   }

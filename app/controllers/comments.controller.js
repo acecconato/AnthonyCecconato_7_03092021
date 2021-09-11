@@ -1,6 +1,7 @@
 const hateoas = require('halson');
 const { validate: isUUID } = require('uuid');
 
+const { getPagination, getPagingData } = require('../services/paginator');
 const errorHandler = require('../services/errorHandler');
 const {
   Posts, Comments, CommentsReports,
@@ -15,9 +16,8 @@ const {
  * @return {Promise<*>}
  */
 exports.getAllComments = async (req, res, next) => {
-  const page = parseInt(req.query.page) || 0;
-  const limit = parseInt(process.env.ITEMS_PER_PAGE);
-  const offset = (page * limit);
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
 
   try {
     const datas = await Comments.findAndCountAll({
@@ -26,41 +26,12 @@ exports.getAllComments = async (req, res, next) => {
       order: [['createdAt', 'DESC']],
     });
 
-    const comments = datas.rows.map((post) => hateoas(post.dataValues));
-    // .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}` })
-    // .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${post.id}` })
-    // .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${post.id}` })
-    // .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/votes` })
-    // .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
-    // .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
-    // .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` }));
+    const comments = datas.rows.map((comment) => hateoas(comment.dataValues)
+      .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${comment.id}` }));
 
-    const totalPage = (datas.count / limit);
-    let previousPage;
+    const paginatedComments = getPagingData(datas, comments, req.baseUrl, page, limit);
 
-    if (page > 0 && (page) < totalPage + 1) {
-      previousPage = page - 1;
-    }
-
-    if (page > 0 && (page) >= totalPage + 1) {
-      return next();
-    }
-
-    const nextPage = ((page + 1) <= totalPage) ? page + 1 : undefined;
-
-    const metadata = hateoas({
-      total: datas.count, limit, offset, currentPage: page,
-    });
-
-    if (previousPage !== undefined) {
-      metadata.addLink('previous', { method: 'GET', href: `${process.env.apiBaseDir}/posts?page=${previousPage}` });
-    }
-
-    if (nextPage) {
-      metadata.addLink('next', { method: 'GET', href: `${process.env.apiBaseDir}/posts?page=${nextPage}` });
-    }
-
-    return res.json({ metadata, comments });
+    return res.json(paginatedComments);
   } catch (e) {
     errorHandler(e, res);
   }

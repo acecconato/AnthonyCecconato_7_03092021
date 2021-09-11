@@ -2,6 +2,7 @@ const hateoas = require('halson');
 const { validate: isUUID } = require('uuid');
 
 const { Users } = require('../models');
+const { getPagination, getPagingData } = require('../services/paginator');
 const errorHandler = require('../services/errorHandler');
 const { revokeAccess } = require('../middlewares/authenticate.middleware');
 
@@ -13,9 +14,8 @@ const { revokeAccess } = require('../middlewares/authenticate.middleware');
  * @return {Promise<*>}
  */
 exports.getAllUsers = async (req, res, next) => {
-  const page = parseInt(req.query.page) || 0;
-  const limit = parseInt(process.env.ITEMS_PER_PAGE);
-  const offset = (page * limit);
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
 
   try {
     const datas = await Users.findAndCountAll({
@@ -32,32 +32,9 @@ exports.getAllUsers = async (req, res, next) => {
       .addLink('update-password', { method: 'PUT', href: `${process.env.apiBaseDir}/users/${user.id}/update-password` })
       .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/users/${user.id}/report` }));
 
-    const totalPage = (datas.count / limit);
-    let previousPage;
+    const paginatedUsers = getPagingData(datas, users, req.baseUrl, page, limit);
 
-    if (page > 0 && (page) < totalPage + 1) {
-      previousPage = page - 1;
-    }
-
-    if (page > 0 && (page) >= totalPage + 1) {
-      return next();
-    }
-
-    const nextPage = ((page + 1) <= totalPage) ? page + 1 : undefined;
-
-    const metadata = hateoas({
-      total: datas.count, limit, offset, currentPage: page,
-    });
-
-    if (previousPage !== undefined) {
-      metadata.addLink('previous', { method: 'GET', href: `${process.env.apiBaseDir}/users?page=${previousPage}` });
-    }
-
-    if (nextPage) {
-      metadata.addLink('next', { method: 'GET', href: `${process.env.apiBaseDir}/users?page=${nextPage}` });
-    }
-
-    return res.json({ metadata, users });
+    return res.json(paginatedUsers);
   } catch (e) {
     errorHandler(e, res);
   }
