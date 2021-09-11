@@ -27,10 +27,10 @@ exports.getAllUsers = async (req, res, next) => {
 
     const users = datas.rows.map((user) => hateoas(user.dataValues)
       .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/users/${user.id}` })
-      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/users/${user.id}` })
+      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/users/${user.id}/report` })
       .addLink('update', { method: 'PUT', href: `${process.env.apiBaseDir}/users/${user.id}` })
-      .addLink('update-password', { method: 'PUT', href: `${process.env.apiBaseDir}/users/${user.id}/update-password` })
-      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/users/${user.id}/report` }));
+      .addLink('update-password', { method: 'POST', href: `${process.env.apiBaseDir}/users/${user.id}/update-password` })
+      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/users/${user.id}` }));
 
     const paginatedUsers = getPagingData(datas, users, req.baseUrl, page, limit);
 
@@ -55,13 +55,19 @@ exports.getUserById = async (req, res, next) => {
   }
 
   try {
-    const user = await Users.findOne({ where: { id } });
+    const user = await Users.findOne({ where: { id }, attributes: { exclude: ['password'] } });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json(user);
+    const result = hateoas(user.dataValues)
+      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/users/${user.id}/report` })
+      .addLink('update', { method: 'PUT', href: `${process.env.apiBaseDir}/users/${user.id}` })
+      .addLink('update-password', { method: 'POST', href: `${process.env.apiBaseDir}/users/${user.id}/update-password` })
+      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/users/${user.id}` });
+
+    res.json(result);
   } catch (e) {
     errorHandler(e, res);
   }
@@ -137,11 +143,11 @@ exports.updateUser = async (req, res, next) => {
     const datas = await user.save();
 
     const updatedUser = hateoas(datas.dataValues)
-      .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/users/${datas.id}` })
-      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/users/${datas.id}` })
-      .addLink('update', { method: 'PUT', href: `${process.env.apiBaseDir}/users/${datas.id}` })
-      .addLink('update-password', { method: 'PUT', href: `${process.env.apiBaseDir}/users/${datas.id}/update-password` })
-      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/users/${datas.id}/report` });
+      .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/users/${user.id}` })
+      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/users/${user.id}/report` })
+      .addLink('update', { method: 'PUT', href: `${process.env.apiBaseDir}/users/${user.id}` })
+      .addLink('update-password', { method: 'POST', href: `${process.env.apiBaseDir}/users/${user.id}/update-password` })
+      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/users/${user.id}` });
 
     return res.json(updatedUser);
   } catch (e) {

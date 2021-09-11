@@ -14,16 +14,25 @@ class Paginator {
     return { limit, offset };
   }
 
+  /**
+   * Get paging datas
+   * @param datas
+   * @param rows
+   * @param url
+   * @param page
+   * @param limit
+   * @return {{totalItems, totalPages: number, currentPage: number, rows}}
+   */
   getPagingData(datas, rows, url, page, limit) {
     const { count: totalItems } = datas;
     const currentPage = page ? +page : 0;
-    const totalPages = Math.ceil(totalItems / limit);
+    const totalPages = Math.ceil(totalItems / limit) - 1;
 
     const _links = hateoas({})
-      .addLink('next page', { method: 'GET', url: `${url}?page=${+page + 1}` });
+      .addLink('next page', { method: 'GET', url: `${url}?page=${+currentPage + 1}` });
 
-    if (page > 0) {
-      _links.addLink('previous page', { method: 'GET', url: `${url}?page=${+page - 1}` });
+    if (currentPage > 0) {
+      _links.addLink('previous page', { method: 'GET', url: `${url}?page=${+currentPage - 1}` });
     }
 
     return {

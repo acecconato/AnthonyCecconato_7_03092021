@@ -15,7 +15,7 @@ const {
  * @param next
  * @return {Promise<*>}
  */
-exports.getAllComments = async (req, res, next) => {
+exports.getAllComments = async (req, res) => {
   const { page, size } = req.query;
   const { limit, offset } = getPagination(page, size);
 
@@ -27,7 +27,11 @@ exports.getAllComments = async (req, res, next) => {
     });
 
     const comments = datas.rows.map((comment) => hateoas(comment.dataValues)
-      .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${comment.id}` }));
+      .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}` })
+      .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` })
+      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` })
+      .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/comments/${comment.id}` })
+      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/comments/${comment.id}` }));
 
     const paginatedComments = getPagingData(datas, comments, req.baseUrl, page, limit);
 
@@ -58,7 +62,13 @@ exports.getCommentById = async (req, res, next) => {
       return res.status(404).json({ message: 'Comment not found' });
     }
 
-    res.json(comment);
+    const result = hateoas(comment.dataValues)
+      .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` })
+      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` })
+      .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/comments/${comment.id}` })
+      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/comments/${comment.id}` });
+
+    return res.json(result);
   } catch (e) {
     errorHandler(e, res);
   }
@@ -80,7 +90,14 @@ exports.addComment = async (req, res) => {
 
     const comment = await post.createComment({ content: req.body.content, userId: req.user.id });
 
-    return res.json(comment);
+    const result = hateoas(comment.dataValues)
+      .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}` })
+      .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` })
+      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` })
+      .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/comments/${comment.id}` })
+      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/comments/${comment.id}` });
+
+    return res.json(result);
   } catch (e) {
     errorHandler(e, res);
   }
@@ -118,7 +135,12 @@ exports.updateComment = async (req, res, next) => {
 
     const datas = await comment.save();
 
-    const updatedComment = hateoas(datas.dataValues);
+    const updatedComment = hateoas(datas.dataValues)
+      .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}` })
+      .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` })
+      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` })
+      .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/comments/${comment.id}` })
+      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/comments/${comment.id}` });
 
     return res.json(updatedComment);
   } catch (e) {
@@ -183,11 +205,48 @@ exports.reportComment = async (req, res, next) => {
 
     const isAlreadyReported = await CommentsReports.count({ where: { userId: req.user.id, commentId: id } });
     if (isAlreadyReported) {
-      return res.json({ message: 'You have already reported this comment' });
+      return res.status(409).json({ message: 'You have already reported this comment' });
     }
 
     const report = await comment.createReport({ userId: req.user.id, commentId: id });
     return res.status(201).json(report);
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Get reports related to a comment
+ * @param req
+ * @param res
+ * @param next
+ * @return {Promise<*>}
+ */
+exports.getCommentReports = async (req, res, next) => {
+  const { id } = req.params;
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+
+  if (!id || !isUUID(id)) {
+    return next();
+  }
+
+  try {
+    const comment = await Comments.findOne({ where: { id } });
+
+    if (!comment) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const datas = await CommentsReports.findAndCountAll({
+      where: { commentId: comment.id },
+      offset,
+      limit,
+    });
+
+    const result = getPagingData(datas, datas.rows, req.baseUrl, page, limit);
+
+    return res.json(result);
   } catch (e) {
     errorHandler(e, res);
   }

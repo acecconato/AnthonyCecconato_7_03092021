@@ -1,5 +1,6 @@
 const hateoas = require('halson');
 const { validate: isUUID } = require('uuid');
+const Sequelize = require('sequelize');
 
 const { getPagination, getPagingData } = require('../services/paginator');
 const errorHandler = require('../services/errorHandler');
@@ -25,12 +26,12 @@ exports.publish = async (req, res) => {
 
     const post = hateoas(datas.dataValues)
       .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}` })
-      .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${datas.id}` })
-      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${datas.id}` })
       .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/votes` })
       .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/comments` })
       .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/reports` })
-      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${datas.id}/reports` });
+      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${datas.id}/reports` })
+      .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${datas.id}` })
+      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${datas.id}` });
 
     return res.status(201).json(post);
   } catch (e) {
@@ -51,26 +52,36 @@ exports.getAllPosts = async (req, res) => {
   const { limit, offset } = getPagination(page, size);
 
   try {
-    const datas = await Posts.findAndCountAll({
+    const count = await Posts.count();
+
+    const datas = await Posts.findAll({
+      subQuery: false,
       offset,
       limit,
+      attributes: {
+        include: [
+          [Sequelize.fn('COUNT', Sequelize.col('comments.id')), 'commentsCount'],
+        ],
+      },
       include: [
-        { model: Comments, as: 'comments', attributes: ['id'] },
+        { model: Comments, as: 'comments', attributes: [] },
+        { model: Votes, as: 'votes', attributes: ['vote'] },
         { model: Users, as: 'user', attributes: ['username'] },
       ],
       order: [['createdAt', 'DESC']],
+      group: ['id'],
     });
 
-    const posts = datas.rows.map((post) => hateoas(post.dataValues)
+    const posts = datas.map((post) => hateoas(post.dataValues)
       .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}` })
-      .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${post.id}` })
-      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${post.id}` })
       .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/votes` })
       .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
       .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
-      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` }));
+      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
+      .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${post.id}` })
+      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${post.id}` }));
 
-    const paginatedPosts = getPagingData(datas, posts, req.baseUrl, page, limit);
+    const paginatedPosts = getPagingData({ count }, posts, req.baseUrl, page, limit);
 
     return res.json(paginatedPosts);
   } catch (e) {
@@ -108,7 +119,15 @@ exports.getPostById = async (req, res, next) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    res.json(post);
+    const result = hateoas(post.dataValues)
+      .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/votes` })
+      .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
+      .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
+      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
+      .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${post.id}` })
+      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${post.id}` });
+
+    res.json(result);
   } catch (e) {
     errorHandler(e, res);
   }
@@ -181,13 +200,13 @@ exports.updatePost = async (req, res, next) => {
     const datas = await post.save();
 
     const updatedPost = hateoas(datas.dataValues)
-      .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}` })
-      .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${datas.id}` })
-      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${datas.id}` })
-      .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/votes` })
-      .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/comments` })
-      .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/reports` })
-      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${datas.id}/reports` });
+      .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}` })
+      .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/votes` })
+      .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
+      .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
+      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
+      .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${post.id}` })
+      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${post.id}` });
 
     return res.json(updatedPost);
   } catch (e) {
@@ -243,7 +262,12 @@ exports.getPostComments = async (req, res, next) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    return res.json(post.comments);
+    const result = post.comments.map((comment) => hateoas(comment.dataValues)
+      .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}` })
+      .addLink('get comment reports', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` })
+      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` }));
+
+    return res.json(result);
   } catch (e) {
     errorHandler(e, res);
   }
@@ -336,6 +360,8 @@ exports.reportPost = async (req, res, next) => {
  */
 exports.getPostReports = async (req, res, next) => {
   const { id } = req.params;
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
 
   if (!id || !isUUID(id)) {
     return next();
@@ -348,8 +374,15 @@ exports.getPostReports = async (req, res, next) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    const reports = await post.getReports();
-    return res.json([{ total: Object.keys(reports).length, reports }]);
+    const datas = await PostsReports.findAndCountAll({
+      where: { postId: post.id },
+      offset,
+      limit,
+    });
+
+    const result = getPagingData(datas, datas.rows, req.baseUrl, page, limit);
+
+    return res.json(result);
   } catch (e) {
     errorHandler(e, res);
   }
