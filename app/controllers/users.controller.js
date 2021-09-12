@@ -1,7 +1,7 @@
 const hateoas = require('halson');
 const { validate: isUUID } = require('uuid');
 
-const { Users } = require('../models');
+const { Users, Feeds } = require('../models');
 const { getPagination, getPagingData } = require('../services/paginator');
 const errorHandler = require('../services/errorHandler');
 const { revokeAccess } = require('../middlewares/authenticate.middleware');
@@ -202,6 +202,41 @@ exports.updateUserPassword = async (req, res, next) => {
     await user.save();
 
     return res.json({ message: 'The password has been updated' });
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Get user feed (posts)
+ * @param req
+ * @param res
+ * @param next
+ * @return {Promise<*>}
+ */
+exports.getUserFeed = async (req, res, next) => {
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+
+  const { id } = req.params;
+
+  if (!id || !isUUID(id)) {
+    return next();
+  }
+
+  try {
+    const feed = await Feeds.findOne({ where: { userId: id } });
+
+    if (!feed) {
+      return res.status(404).json('User not found');
+    }
+
+    const count = await feed.countPosts();
+    const posts = await feed.getPosts({ limit, offset });
+
+    const paginatedFeedPosts = getPagingData({ count }, posts, req.baseUrl, page, limit);
+
+    return res.json(paginatedFeedPosts);
   } catch (e) {
     errorHandler(e, res);
   }

@@ -75,6 +75,8 @@ exports.signup = async (req, res) => {
       fields: ['email', 'password', 'username'],
     });
 
+    await user.createFeed();
+
     return res.status(201).json({
       ...user.dataValues, password: undefined, createdAt: undefined, updatedAt: undefined,
     });

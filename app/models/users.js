@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate({
-      Posts, Comments, PostsReports, Votes, CommentsReports, RefreshTokens,
+      Posts, Comments, PostsReports, Votes, CommentsReports, RefreshTokens, Feeds,
     }) {
       // define association here
       this.hasMany(Posts, { foreignKey: 'userId', as: 'posts', onDelete: 'set null' });
@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(Votes, { foreignKey: 'userId', as: 'votes', onDelete: 'cascade' });
       this.hasMany(CommentsReports, { foreignKey: 'userId', as: 'reportedComments', onDelete: 'cascade' });
       this.hasMany(RefreshTokens, { foreignKey: 'userId', as: 'refreshTokens', onDelete: 'cascade' });
+      this.hasOne(Feeds, { foreignKey: 'userId', as: 'feed', onDelete: 'cascade' });
     }
 
     toJSON() {

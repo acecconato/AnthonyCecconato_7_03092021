@@ -5,7 +5,7 @@ const Sequelize = require('sequelize');
 const { getPagination, getPagingData } = require('../services/paginator');
 const errorHandler = require('../services/errorHandler');
 const {
-  Posts, Users, Comments, Votes, PostsReports,
+  Posts, Users, Comments, Votes, PostsReports, Feeds,
 } = require('../models');
 
 /**
@@ -23,6 +23,8 @@ exports.publish = async (req, res) => {
     }
 
     const datas = await user.createPost(req.body, { fields: ['content'] });
+    const feed = await user.getFeed();
+    await feed.addPost(datas);
 
     const post = hateoas(datas.dataValues)
       .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}` })
@@ -383,6 +385,80 @@ exports.getPostReports = async (req, res, next) => {
     const result = getPagingData(datas, datas.rows, req.baseUrl, page, limit);
 
     return res.json(result);
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Share a post the user's feed
+ * @param req
+ * @param res
+ * @param next
+ * @return {Promise<*>}
+ */
+exports.sharePost = async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!id || !isUUID(id)) {
+    return next();
+  }
+
+  try {
+    const post = await Posts.findOne({ where: { id } });
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const feed = await Feeds.findOne({ where: { userId: req.user.id } });
+
+    if (await feed.hasPost(post)) {
+      return res.status(409).json({ message: 'You already have this post in your feed' });
+    }
+
+    await feed.setPost(post);
+
+    return res.json({ message: 'Post has been shared in your feed' });
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Unshare a post from the user's feed
+ * @param req
+ * @param res
+ * @param next
+ * @return {Promise<*>}
+ */
+exports.unsharePost = async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!id || !isUUID(id)) {
+    return next();
+  }
+
+  try {
+    const post = await Posts.findOne({ where: { id } });
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    if (post.userId === req.user.id) {
+      return res.status(403).json({ message: 'You can\'t unshare your own post' });
+    }
+
+    const feed = await Feeds.findOne({ where: { userId: req.user.id } });
+
+    if (!await feed.hasPost(post)) {
+      return res.status(409).json({ message: 'The post is not inside the feed' });
+    }
+
+    await feed.removePost(post);
+
+    return res.json({ message: 'Post has been unshared from your feed' });
   } catch (e) {
     errorHandler(e, res);
   }
