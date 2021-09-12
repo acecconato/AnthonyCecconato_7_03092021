@@ -1,6 +1,8 @@
 const { Model } = require('sequelize');
 const argon2 = require('argon2');
 
+const { encrypt, decrypt } = require('../services/encryption');
+
 module.exports = (sequelize, DataTypes) => {
   class Users extends Model {
     /**
@@ -93,17 +95,13 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Users',
+    hooks: {
+      async afterValidate(user, options) {
+        const hash = await argon2.hash(user.password);
+        user.password = hash;
+      },
+    },
   });
-
-  const hashPassword = async (user) => {
-    if (user.changed('password')) {
-      const hash = await argon2.hash(user.password);
-      user.setDataValue('password', hash);
-    }
-  };
-
-  Users.beforeCreate(hashPassword);
-  Users.beforeUpdate(hashPassword);
 
   return Users;
 };

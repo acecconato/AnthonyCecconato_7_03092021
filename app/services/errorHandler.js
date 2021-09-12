@@ -1,9 +1,6 @@
-/**
- * Handle errors
- * @param e
- * @param res
- * @return {*}
- */
+const path = require('path');
+const log = require('simple-node-logger').createSimpleLogger(path.join(__dirname, '../../var/logs/errors.log'));
+
 const Sequelize = require('sequelize');
 
 module.exports = (e, res) => {
@@ -11,6 +8,7 @@ module.exports = (e, res) => {
     return res.status(422).json(e.errors);
   }
 
+  log.warn({ e });
   console.error(e);
   return res.status(500).send();
 };
