@@ -27,9 +27,18 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(160),
       allowNull: false,
       validate: {
-        notNull: true,
-        notEmpty: true,
-        len: [0, 160],
+        notNull: {
+          args: true,
+          msg: 'The content cannot be null',
+        },
+        notEmpty: {
+          args: true,
+          msg: 'The content is empty',
+        },
+        len: {
+          args: [5, 160],
+          msg: 'Username must have 5 to 160 characters',
+        },
       },
     },
 

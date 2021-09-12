@@ -8,7 +8,7 @@ class Paginator {
    * @return {{offset: number, limit: number}}
    */
   getPagination(page, size) {
-    const limit = size ? +size : 3;
+    const limit = size ? +size : parseInt(process.env.ITEMS_PER_PAGE);
     const offset = page ? page * limit : 0;
 
     return { limit, offset };

@@ -5,7 +5,12 @@ const Sequelize = require('sequelize');
 
 module.exports = (e, res) => {
   if (e instanceof Sequelize.UniqueConstraintError || e instanceof Sequelize.ValidationError) {
-    return res.status(422).json(e.errors);
+    const errors = [];
+    e.errors.forEach((error) => {
+      errors.push({ type: error.type, message: error.message, field: error.path });
+    });
+
+    return res.status(422).json(errors || e.errors);
   }
 
   log.warn({ e });

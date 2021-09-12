@@ -8,7 +8,12 @@ const passwordStrength = require('owasp-password-strength-test');
  */
 exports.isPasswordInDataBreaches = async (plainPassword) => {
   const breaches = await pwnedPassword(plainPassword);
-  return !breaches > 0;
+
+  if (breaches > 0) {
+    throw new Error(`The provided password is found in ${breaches} data breaches`);
+  }
+
+  return true;
 };
 
 /**

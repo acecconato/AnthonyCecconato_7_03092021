@@ -1,7 +1,7 @@
 const { Model } = require('sequelize');
 const argon2 = require('argon2');
 
-const { encrypt, decrypt } = require('../services/encryption');
+const { isPasswordInDataBreaches, isStrongPassword } = require('../services/validator');
 
 module.exports = (sequelize, DataTypes) => {
   class Users extends Model {
@@ -44,12 +44,27 @@ module.exports = (sequelize, DataTypes) => {
       lowercase: true,
       trim: true,
       allowNull: false,
-      unique: true,
+      unique: {
+        args: true,
+        msg: 'The email address is already registered',
+      },
       validate: {
-        notNull: true,
-        notEmpty: true,
-        isEmail: true,
-        len: [5, 60],
+        notNull: {
+          args: true,
+          msg: 'The email address cannot be null',
+        },
+        notEmpty: {
+          args: true,
+          msg: 'The email address is empty',
+        },
+        isEmail: {
+          args: true,
+          msg: 'The email address syntax is incorrect',
+        },
+        len: {
+          args: [5, 60],
+          msg: 'Email address must have 5 to 60 characters',
+        },
       },
     },
 
@@ -57,10 +72,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(255),
       allowNull: false,
       validate: {
-        notNull: true,
-        notEmpty: true,
-        isStrongPassword: { args: false },
-        // TODO: HIBP
+        notNull: {
+          args: true,
+          msg: 'The password cannot be null',
+        },
+        notEmpty: {
+          args: true,
+          msg: 'The password is empty',
+        },
+        isPasswordInDataBreaches,
+        isStrongPassword,
       },
     },
 
@@ -68,12 +89,27 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(30),
       allowNull: false,
       trim: true,
-      lowercase: true,
-      unique: true,
+      unique: {
+        args: true,
+        msg: 'The username is already taken',
+      },
       validate: {
-        notNull: true,
-        notEmpty: true,
-        len: [3, 30],
+        notNull: {
+          args: true,
+          msg: 'The username cannot be null',
+        },
+        notEmpty: {
+          args: true,
+          msg: 'The username is empty',
+        },
+        len: {
+          args: [3, 30],
+          msg: 'Username must have 3 to 30 characters',
+        },
+        is: {
+          args: /^[a-z0-9]+$/i,
+          msg: 'Username syntax is not valid. Only accept alphanumerical characters',
+        },
       },
     },
 
@@ -82,9 +118,18 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 'user',
       validate: {
-        notNull: true,
-        notEmpty: true,
-        len: [0, 30],
+        notNull: {
+          args: true,
+          msg: 'The role cannot be null',
+        },
+        notEmpty: {
+          args: true,
+          msg: 'The role is empty',
+        },
+        len: {
+          args: [3, 30],
+          msg: 'Role must have 3 to 30 characters',
+        },
         isIn: {
           args: [['user', 'admin']],
           msg: 'Invalid role provided. Must be user or admin',

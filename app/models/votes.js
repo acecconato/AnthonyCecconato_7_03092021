@@ -35,9 +35,6 @@ module.exports = (sequelize, DataTypes) => {
     vote: {
       type: DataTypes.ENUM(['-1', '0', '1']),
       allowNull: false,
-      validate: {
-        isInt: true,
-      },
     },
   }, {
     sequelize,
