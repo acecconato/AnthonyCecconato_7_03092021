@@ -1,6 +1,8 @@
 const { Model } = require('sequelize');
 const argon2 = require('argon2');
 
+const { isPasswordInDataBreaches, isStrongPassword } = require('../services/validator');
+
 module.exports = (sequelize, DataTypes) => {
   class Users extends Model {
     /**
@@ -9,17 +11,16 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate({
-      Posts, Comments, PostsReports, Votes, UsersReports, CommentsReports, RefreshTokens,
+      Posts, Comments, PostsReports, Votes, CommentsReports, RefreshTokens, Feeds,
     }) {
       // define association here
       this.hasMany(Posts, { foreignKey: 'userId', as: 'posts', onDelete: 'set null' });
       this.hasMany(Comments, { foreignKey: 'userId', as: 'comments', onDelete: 'set null' });
       this.hasMany(PostsReports, { foreignKey: 'userId', as: 'reportedPosts', onDelete: 'cascade' });
       this.hasMany(Votes, { foreignKey: 'userId', as: 'votes', onDelete: 'cascade' });
-      this.hasMany(UsersReports, { foreignKey: 'fromUserId', as: 'reportedUsers', onDelete: 'cascade' });
-      this.hasMany(UsersReports, { foreignKey: 'reportedUserId', as: 'reports', onDelete: 'cascade' });
       this.hasMany(CommentsReports, { foreignKey: 'userId', as: 'reportedComments', onDelete: 'cascade' });
       this.hasMany(RefreshTokens, { foreignKey: 'userId', as: 'refreshTokens', onDelete: 'cascade' });
+      this.hasOne(Feeds, { foreignKey: 'userId', as: 'feed', onDelete: 'cascade' });
     }
 
     toJSON() {
@@ -43,12 +44,27 @@ module.exports = (sequelize, DataTypes) => {
       lowercase: true,
       trim: true,
       allowNull: false,
-      unique: true,
+      unique: {
+        args: true,
+        msg: 'The email address is already registered',
+      },
       validate: {
-        notNull: true,
-        notEmpty: true,
-        isEmail: true,
-        len: [0, 60],
+        notNull: {
+          args: true,
+          msg: 'The email address cannot be null',
+        },
+        notEmpty: {
+          args: true,
+          msg: 'The email address is empty',
+        },
+        isEmail: {
+          args: true,
+          msg: 'The email address syntax is incorrect',
+        },
+        len: {
+          args: [5, 60],
+          msg: 'Email address must have 5 to 60 characters',
+        },
       },
     },
 
@@ -56,10 +72,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(255),
       allowNull: false,
       validate: {
-        notNull: true,
-        notEmpty: true,
-        isStrongPassword: { args: false },
-        // TODO: HIBP
+        notNull: {
+          args: true,
+          msg: 'The password cannot be null',
+        },
+        notEmpty: {
+          args: true,
+          msg: 'The password is empty',
+        },
+        isPasswordInDataBreaches,
+        isStrongPassword,
       },
     },
 
@@ -67,12 +89,27 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(30),
       allowNull: false,
       trim: true,
-      lowercase: true,
-      unique: true,
+      unique: {
+        args: true,
+        msg: 'The username is already taken',
+      },
       validate: {
-        notNull: true,
-        notEmpty: true,
-        len: [0, 30],
+        notNull: {
+          args: true,
+          msg: 'The username cannot be null',
+        },
+        notEmpty: {
+          args: true,
+          msg: 'The username is empty',
+        },
+        len: {
+          args: [3, 30],
+          msg: 'Username must have 3 to 30 characters',
+        },
+        is: {
+          args: /^[a-z0-9]+$/i,
+          msg: 'Username syntax is not valid. Only accept alphanumerical characters',
+        },
       },
     },
 
@@ -81,61 +118,35 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 'user',
       validate: {
-        notNull: true,
-        notEmpty: true,
-        len: [0, 30],
+        notNull: {
+          args: true,
+          msg: 'The role cannot be null',
+        },
+        notEmpty: {
+          args: true,
+          msg: 'The role is empty',
+        },
+        len: {
+          args: [3, 30],
+          msg: 'Role must have 3 to 30 characters',
+        },
         isIn: {
           args: [['user', 'admin']],
-          msg: 'Invalid role provided. Should be user or admin',
+          msg: 'Invalid role provided. Must be user or admin',
         },
-      },
-    },
-
-    firstName: {
-      type: DataTypes.STRING(30),
-      trim: true,
-      validate: {
-        len: [0, 30],
-        is: {
-          args: /\b([A-ZÀ-ÿ][-,a-z. ']+[ ]*)+/i,
-          msg: 'The specified first name is not in a valid format',
-        },
-      },
-    },
-
-    lastName: {
-      type: DataTypes.STRING(30),
-      trim: true,
-      validate: {
-        len: [0, 30],
-        is: {
-          args: /\b([A-ZÀ-ÿ][-,a-z. ']+[ ]*)+/i,
-          msg: 'The specified last name is not in a valid format',
-        },
-      },
-    },
-
-    birthdate: {
-      type: DataTypes.DATE,
-      validate: {
-        isDate: true,
       },
     },
 
   }, {
     sequelize,
     modelName: 'Users',
+    hooks: {
+      async afterValidate(user, options) {
+        const hash = await argon2.hash(user.password);
+        user.password = hash;
+      },
+    },
   });
-
-  const hashPassword = async (user) => {
-    if (user.changed('password')) {
-      const hash = await argon2.hash(user.password);
-      user.setDataValue('password', hash);
-    }
-  };
-
-  Users.beforeCreate(hashPassword);
-  Users.beforeUpdate(hashPassword);
 
   return Users;
 };

@@ -10,15 +10,17 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate({
-      Users, Comments, Attachments, PostsReports, Votes,
+      Users, Comments, PostsReports, Votes, Feeds, Posts_Feeds,
     }) {
       // define association here
       this.belongsTo(Users, { foreignKey: 'userId', as: 'user' });
-      this.hasMany(Comments, { foreignKey: 'postId', as: 'comments', onDelete: 'CASCADE' });
-      this.hasMany(PostsReports, { foreignKey: 'postId', as: 'reports', onDelete: 'CASCADE' });
+      this.hasMany(Comments, { foreignKey: 'postId', as: 'comments', onDelete: 'cascade' });
+      this.hasMany(PostsReports, { foreignKey: 'postId', as: 'reports', onDelete: 'cascade' });
       this.hasMany(Votes, { foreignKey: 'postId', as: 'votes', onDelete: 'cascade' });
+      this.belongsToMany(Feeds, { through: Posts_Feeds, foreignKey: 'postId' });
     }
   }
+
   Posts.init({
     id: {
       type: DataTypes.UUID,
@@ -35,9 +37,18 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: false,
       validate: {
-        notNull: true,
-        notEmpty: true,
-        len: [20, 400],
+        notNull: {
+          args: true,
+          msg: 'The content cannot be null',
+        },
+        notEmpty: {
+          args: true,
+          msg: 'The content is empty',
+        },
+        len: {
+          args: [20, 400],
+          msg: 'Username must have 20 to 400 characters',
+        },
       },
     },
 
@@ -45,5 +56,6 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Posts',
   });
+
   return Posts;
 };

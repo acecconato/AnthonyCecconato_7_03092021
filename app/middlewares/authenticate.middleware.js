@@ -26,10 +26,10 @@ const isLoggedIn = (req, res, next) => {
     }
 
     // Json web token revoke system
-    const cachedToken = cache.getSync(`jwt${decoded.uuid}`);
+    const cachedToken = JSON.parse(cache.getItem(`jwt${decoded.uuid}`)) || undefined;
     if (cachedToken) {
       if (!cachedToken.accessToken || cachedToken.accessToken !== req.token) {
-        return res.status(403).json({ message: 'The cached token and the current token doesn\'t matches' });
+        return res.status(403).json({ message: 'The cached token and the current token doesn\'t matches, please login again' });
       }
 
       if (cachedToken.isRevoked) {
@@ -70,7 +70,22 @@ const hasRole = (role) => async (req, res, next) => {
   }
 };
 
+/**
+ * Revoke user access
+ * @param user
+ * @return {Promise<void>}
+ */
+const revokeAccess = async (user) => {
+  if (user && user.id && user.role) {
+    const cachedToken = JSON.parse(cache.getItem(`jwt${user.id}`)) || undefined;
+    if (cachedToken && cachedToken.accessToken && cachedToken.refreshToken) {
+      cache.setItem(`jwt${user.id}`, JSON.stringify({ ...JSON.parse(cache.getItem(`jwt${user.id}`)), isRevoked: true }));
+    }
+  }
+};
+
 module.exports = {
   isLoggedIn,
   hasRole,
+  revokeAccess,
 };

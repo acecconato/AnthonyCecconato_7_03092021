@@ -1,6 +1,6 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('Votes', {
+    await queryInterface.createTable('Posts_Feeds', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -8,19 +8,8 @@ module.exports = {
         primaryKey: true,
       },
 
-      userId: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        onDelete: 'CASCADE',
-        references: {
-          model: 'Users',
-          key: 'id',
-        },
-      },
-
       postId: {
         type: Sequelize.UUID,
-        allowNull: false,
         onDelete: 'CASCADE',
         references: {
           model: 'Posts',
@@ -28,13 +17,17 @@ module.exports = {
         },
       },
 
-      vote: {
-        type: Sequelize.ENUM(['-1', '0', '1']),
-        allowNull: false,
+      feedId: {
+        type: Sequelize.UUID,
+        onDelete: 'CASCADE',
+        references: {
+          model: 'Feeds',
+          key: 'id',
+        },
       },
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('Votes');
+    await queryInterface.dropTable('Posts_Feeds');
   },
 };

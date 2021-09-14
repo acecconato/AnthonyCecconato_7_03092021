@@ -4,18 +4,22 @@ const router = express.Router();
 
 const postsController = require('../controllers/posts.controller');
 
-router.post('/', postsController.publish);
-router.post('/:uuid/votes', postsController.handleVote);
-router.post('/:uuid/reports', postsController.reportPost);
+const { hasRole } = require('../middlewares/authenticate.middleware');
 
 router.get('/', postsController.getAllPosts);
-router.get('/uuid', postsController.getPostByUUID);
-router.get('/:uuid/votes', postsController.getPostVotes);
-router.get('/:uuid/comments', postsController.getPostComments);
-router.get('/:uuid/reports', postsController.getPostReports);
+router.get('/:id', postsController.getPostById);
+router.get('/:id/votes', postsController.getPostVotes);
+router.get('/:id/comments', postsController.getPostComments);
+router.get('/:id/reports', hasRole('admin'), postsController.getPostReports);
 
-router.delete('/:uuid', postsController.deletePost);
+router.post('/', postsController.publish);
+router.post('/:id/share', postsController.sharePost);
+router.post('/:id/votes', postsController.handleVote);
+router.post('/:id/reports', postsController.reportPost);
 
-router.put('/:uuid', postsController.updatePost);
+router.patch('/:id', postsController.updatePost);
+
+router.delete('/:id', postsController.deletePost);
+router.delete('/:id/share', postsController.unsharePost);
 
 module.exports = router;

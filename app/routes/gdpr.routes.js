@@ -4,6 +4,6 @@ const router = express.Router();
 
 const gdprController = require('../controllers/gdpr.controller');
 
-router.get('/', gdprController.exportMyData);
+router.get('/export-my-data', gdprController.exportMyData);
 
 module.exports = router;

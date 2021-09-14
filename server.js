@@ -10,13 +10,12 @@ const fs = require('fs');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
-
-const {
-  sequelize, Users, Posts, Comments, UsersReports,
-} = require('./app/models');
+const log = require('simple-node-logger').createSimpleLogger(('var/logs/errors.log'));
 
 // Load .env configuration
 require('dotenv').config();
+
+const { sequelize } = require('./app/models');
 
 // Define variables
 const HOST = process.env.APP_HOST || '0.0.0.0';
@@ -84,6 +83,7 @@ app.listen(PORT, HOST, async () => {
     await sequelize.authenticate();
     console.log('Database connected');
   } catch (e) {
+    log.error({ e });
     console.error(e);
   }
 });

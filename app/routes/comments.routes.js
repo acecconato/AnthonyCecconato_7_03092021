@@ -3,14 +3,17 @@ const express = require('express');
 const router = express.Router();
 
 const commentsController = require('../controllers/comments.controller');
+const { hasRole } = require('../middlewares/authenticate.middleware');
 
-router.post('/:uuid/reports', commentsController.reportComment);
+router.post('/', commentsController.addComment);
+router.post('/:id/reports', commentsController.reportComment);
 
 router.get('/', commentsController.getAllComments);
-router.get('/:uuid', commentsController.getCommentByUUID);
+router.get('/:id', commentsController.getCommentById);
+router.get('/:id/reports', hasRole('admin'), commentsController.getCommentReports);
 
-router.put('/:uuid', commentsController.updateComment);
+router.patch('/:id', commentsController.updateComment);
 
-router.delete('/:uuid', commentsController.deleteComment);
+router.delete('/:id', commentsController.deleteComment);
 
 module.exports = router;

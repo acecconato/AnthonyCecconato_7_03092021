@@ -3,38 +3,45 @@ const {
 } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class UsersReports extends Model {
+  class Posts_Feeds extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-    static associate({ Users }) {
+    static associate(models) {
       // define association here
-      this.belongsTo(Users, { foreignKey: 'fromUserId', as: 'reportedUsers' });
-      this.belongsTo(Users, { foreignKey: 'reportedUserId', as: 'reports' });
     }
   }
-  UsersReports.init({
+  Posts_Feeds.init({
     id: {
+      primaryKey: true,
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
     },
 
-    reportedUserId: {
+    postId: {
       type: DataTypes.UUID,
       allowNull: false,
+      references: {
+        model: 'Posts',
+        key: 'id',
+      },
     },
 
-    fromUserId: {
+    feedId: {
       type: DataTypes.UUID,
       allowNull: false,
+      references: {
+        model: 'Feeds',
+        key: 'id',
+      },
     },
   }, {
     sequelize,
-    modelName: 'UsersReports',
+    modelName: 'Posts_Feeds',
     timestamps: false,
   });
-  return UsersReports;
+
+  return Posts_Feeds;
 };

@@ -1,6 +1,6 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('UsersReports', {
+    await queryInterface.createTable('Feeds', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -8,20 +8,11 @@ module.exports = {
         primaryKey: true,
       },
 
-      reportedUserId: {
+      userId: {
+        unique: true,
         type: Sequelize.UUID,
         allowNull: false,
-        onDelete: 'CASCADE',
-        references: {
-          model: 'Users',
-          key: 'id',
-        },
-      },
-
-      fromUserId: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        onDelete: 'CASCADE',
+        onDelete: 'cascade',
         references: {
           model: 'Users',
           key: 'id',
@@ -30,6 +21,6 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('UsersReports');
+    await queryInterface.dropTable('Feeds');
   },
 };
