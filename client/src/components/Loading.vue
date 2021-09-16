@@ -1,13 +1,19 @@
 <template>
-  <div aria-label="Chargement en cours" class="mt-5 mx-auto sk-chase">
-    <div class="sk-chase-dot"></div>
-    <div class="sk-chase-dot"></div>
-    <div class="sk-chase-dot"></div>
-    <div class="sk-chase-dot"></div>
-    <div class="sk-chase-dot"></div>
-    <div class="sk-chase-dot"></div>
+  <div aria-label="Chargement en cours" class="mx-auto sk-chase">
+    <div  class="sk-chase-dot"></div>
+    <div  class="sk-chase-dot"></div>
+    <div  class="sk-chase-dot"></div>
+    <div  class="sk-chase-dot"></div>
+    <div  class="sk-chase-dot"></div>
+    <div  class="sk-chase-dot"></div>
   </div>
 </template>
+
+<script>
+export default {
+  name: 'Loading'
+}
+</script>
 
 <style scoped>
 .sk-chase {

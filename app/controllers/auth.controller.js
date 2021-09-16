@@ -14,6 +14,8 @@ const { revokeAccess } = require('../middlewares/authenticate.middleware');
  * @return {Promise<*>}
  */
 exports.login = async (req, res) => {
+  const { remember } = req.body || false;
+
   try {
     const user = await Users.findOne({ where: { username: req.body.username } });
 
@@ -24,7 +26,7 @@ exports.login = async (req, res) => {
     const expiresIn = parseInt(process.env.JWT_EXP);
 
     const accessToken = jwt.sign({ uuid: user.id, role: user.role }, process.env.SECRET, { expiresIn });
-    const refreshToken = await RefreshTokens.createToken(user);
+    const refreshToken = (remember) ? await RefreshTokens.createToken(user) : undefined;
 
     /* Used for revoke access:
     * We store the current access and refresh tokens, so we can check their validity in our authentication middleware */
@@ -34,6 +36,9 @@ exports.login = async (req, res) => {
       userId: user.id,
       accessToken,
       refreshToken,
+      role: user.role,
+      username: user.username,
+      email: user.email,
     });
   } catch (e) {
     errorHandler(e, res);
@@ -124,8 +129,10 @@ exports.refreshToken = async (req, res, next) => {
     cache.setItem(`jwt${user.id}`, JSON.stringify({ accessToken: newAccessToken, refreshToken: refreshToken.token, isRevoked: false }));
 
     return res.json({
+      userId: user.id,
       accessToken: newAccessToken,
       refreshToken: refreshToken.token,
+      role: user.role,
     });
   } catch (e) {
     errorHandler(e, res);

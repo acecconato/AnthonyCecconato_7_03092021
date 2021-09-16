@@ -6,5 +6,13 @@ import { BootstrapIconsPlugin } from 'bootstrap-icons-vue'
 
 import App from './App.vue'
 import router from './router/index'
+import store from './store'
+import setupInterceptor from './services/setupInterceptor'
 
-createApp(App).use(BootstrapIconsPlugin).use(router).mount('#app')
+setupInterceptor(store)
+
+createApp(App)
+  .use(BootstrapIconsPlugin)
+  .use(router)
+  .use(store)
+  .mount('#app')

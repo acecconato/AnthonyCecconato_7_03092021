@@ -1,13 +1,16 @@
 <template>
-  <a :href="href" class="btn btn-groupomania">{{ text }}</a>
+  <router-link :to="to" v-if="type === 'link'">{{ text }}</router-link>
+  <a v-else :to="to" @click="$emit('button-click')" class="btn btn-groupomania">{{ text }}</a>
 </template>
 
 <script>
 export default {
   name: 'Button',
+
   props: {
     text: String,
-    href: String
+    to: String,
+    type: { type: String, default: 'link' }
   }
 }
 </script>

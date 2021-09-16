@@ -11,14 +11,14 @@
   <section aria-labelledby="feed-title">
     <div class="container">
       <h2 class="container mt-5 section-title" id="feed-title">Fil d'actualité</h2>
-      <Button class="mt-4" text="Ajouter une publication" href="#"/>
+      <Button class="mt-4" @button-click="postAdd" text="Ajouter une publication" type="button"/>
     </div>
 
     <div class="container mt-4 filters">
       <h3>Filtres</h3>
       <a aria-label="Tout afficher" class="btn btn-filter active">Tout</a>
-      <a aria-label="Afficher seulement les gifs et images" class="btn btn-filter">Gifs & images</a>
-      <a aria-label="Afficher seulement les textes" class="btn btn-filter">Textes</a>
+      <a aria-label="Afficher seulement les gifs et images" class="btn btn-filter disabled">Gifs & images</a>
+      <a aria-label="Afficher seulement les textes" class="btn btn-filter disabled">Textes</a>
 
       <PostsList :posts="posts" />
 
@@ -42,6 +42,12 @@ export default {
   data () {
     return {
       posts: []
+    }
+  },
+
+  methods: {
+    postAdd () {
+      console.log('CLICKED')
     }
   },
 

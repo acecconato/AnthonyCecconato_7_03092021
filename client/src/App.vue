@@ -80,4 +80,9 @@ h1, h2, h3, h4, h5 {
     }
   }
 }
+
+p.invalid-feedback {
+  display: block;
+  margin-bottom: 0;
+}
 </style>
