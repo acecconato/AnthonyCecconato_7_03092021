@@ -13,7 +13,7 @@ const { revokeAccess } = require('../middlewares/authenticate.middleware');
  * @param res
  * @return {Promise<*>}
  */
-exports.getAllUsers = async (req, res, next) => {
+exports.getAllUsers = async (req, res) => {
   const { page, size } = req.query;
   const { limit, offset } = getPagination(page, size);
 
@@ -171,6 +171,8 @@ exports.updateUserPassword = async (req, res, next) => {
 
   const { old_password: oldPassword, new_password: newPassword } = req.body || undefined;
 
+  console.log(oldPassword, newPassword);
+
   try {
     const user = await Users.findOne({ where: { id } });
 
@@ -190,12 +192,12 @@ exports.updateUserPassword = async (req, res, next) => {
       }
 
       if (!await user.comparePassword(oldPassword) && req.user.role !== 'admin') {
-        return res.status(401).json({ message: 'Bad Credentials' });
+        return res.status(401).json({ message: 'Identifiants incorrects' });
       }
     }
 
     if (oldPassword === newPassword) {
-      return res.status(400).json({ message: 'Password are be identicals' });
+      return res.status(400).json({ message: 'L\'ancien et le nouveau mot de passe ne peuvent pas être identiques' });
     }
 
     user.password = newPassword;

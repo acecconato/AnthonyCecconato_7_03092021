@@ -1,6 +1,8 @@
 <template>
   <Navbar />
-  <router-view></router-view>
+  <main>
+    <router-view></router-view>
+  </main>
 </template>
 
 <script>
@@ -8,6 +10,7 @@ import Navbar from './components/Navbar'
 
 export default {
   name: 'App',
+
   components: {
     Navbar
   }
@@ -19,6 +22,11 @@ export default {
 
 * {
   font-family: Karla, sans-serif;
+}
+
+*:focus-visible {
+  outline: #FFD7D7 solid 4px!important;
+  outline-offset: 4px;
 }
 
 h1, h2, h3, h4, h5 {
@@ -83,6 +91,12 @@ h1, h2, h3, h4, h5 {
 
 p.invalid-feedback {
   display: block;
-  margin-bottom: 0;
+  position: relative;
+  top: 15px;
+}
+
+.btn-primary {
+  background: #1CB0F6;
+  border-color: #1CB0F6;
 }
 </style>

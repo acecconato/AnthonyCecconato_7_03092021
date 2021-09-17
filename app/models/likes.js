@@ -3,7 +3,7 @@ const {
 } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Votes extends Model {
+  class Likes extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -15,7 +15,8 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(Posts, { foreignKey: 'postId', as: 'post' });
     }
   }
-  Votes.init({
+
+  Likes.init({
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
@@ -31,15 +32,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
       allowNull: false,
     },
-
-    vote: {
-      type: DataTypes.ENUM(['-1', '0', '1']),
-      allowNull: false,
-    },
   }, {
     sequelize,
-    modelName: 'Votes',
+    modelName: 'Likes',
     timestamps: false,
   });
-  return Votes;
+  return Likes;
 };

@@ -1,6 +1,6 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('Votes', {
+    await queryInterface.createTable('Likes', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -27,14 +27,9 @@ module.exports = {
           key: 'id',
         },
       },
-
-      vote: {
-        type: Sequelize.ENUM(['-1', '0', '1']),
-        allowNull: false,
-      },
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('Votes');
+    await queryInterface.dropTable('Likes');
   },
 };

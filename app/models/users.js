@@ -11,13 +11,13 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate({
-      Posts, Comments, PostsReports, Votes, CommentsReports, RefreshTokens, Feeds,
+      Posts, Comments, PostsReports, Likes, CommentsReports, RefreshTokens, Feeds,
     }) {
       // define association here
       this.hasMany(Posts, { foreignKey: 'userId', as: 'posts', onDelete: 'set null' });
       this.hasMany(Comments, { foreignKey: 'userId', as: 'comments', onDelete: 'set null' });
       this.hasMany(PostsReports, { foreignKey: 'userId', as: 'reportedPosts', onDelete: 'cascade' });
-      this.hasMany(Votes, { foreignKey: 'userId', as: 'votes', onDelete: 'cascade' });
+      this.hasMany(Likes, { foreignKey: 'userId', as: 'likes', onDelete: 'cascade' });
       this.hasMany(CommentsReports, { foreignKey: 'userId', as: 'reportedComments', onDelete: 'cascade' });
       this.hasMany(RefreshTokens, { foreignKey: 'userId', as: 'refreshTokens', onDelete: 'cascade' });
       this.hasOne(Feeds, { foreignKey: 'userId', as: 'feed', onDelete: 'cascade' });
@@ -141,9 +141,18 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Users',
     hooks: {
-      async afterValidate(user, options) {
-        const hash = await argon2.hash(user.password);
-        user.password = hash;
+      async beforeCreate(user) {
+        if (user.changed('password')) {
+          const hash = await argon2.hash(user.password);
+          user.setDataValue('password', hash);
+        }
+      },
+
+      async beforeUpdate(user) {
+        if (user.changed('password')) {
+          const hash = await argon2.hash(user.password);
+          user.setDataValue('password', hash);
+        }
       },
     },
   });

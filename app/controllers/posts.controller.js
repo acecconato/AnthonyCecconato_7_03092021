@@ -5,7 +5,7 @@ const Sequelize = require('sequelize');
 const { getPagination, getPagingData } = require('../services/paginator');
 const errorHandler = require('../services/errorHandler');
 const {
-  Posts, Users, Comments, Votes, PostsReports, Feeds,
+  Posts, Users, Comments, Likes, PostsReports, Feeds,
 } = require('../models');
 
 /**
@@ -28,7 +28,7 @@ exports.publish = async (req, res) => {
 
     const post = hateoas(datas.dataValues)
       .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}` })
-      .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/votes` })
+      .addLink('get likes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/likes` })
       .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/comments` })
       .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/reports` })
       .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${datas.id}/reports` })
@@ -57,31 +57,29 @@ exports.getAllPosts = async (req, res) => {
     const count = await Posts.count();
 
     const datas = await Posts.findAll({
-      subQuery: false,
       offset,
       limit,
-      attributes: {
-        include: [
-          [Sequelize.fn('COUNT', Sequelize.col('comments.id')), 'commentsCount'],
-        ],
-      },
       include: [
-        { model: Comments, as: 'comments', attributes: [] },
-        { model: Votes, as: 'votes', attributes: ['vote'] },
+        { model: Comments, as: 'comments', attributes: ['id'] },
+        { model: Likes, as: 'likes', attributes: ['userId'] },
         { model: Users, as: 'user', attributes: ['username'] },
       ],
       order: [['createdAt', 'DESC']],
-      group: ['id'],
     });
 
-    const posts = datas.map((post) => hateoas(post.dataValues)
-      .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}` })
-      .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/votes` })
-      .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
-      .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
-      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
-      .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${post.id}` })
-      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${post.id}` }));
+    const posts = datas.map((post) => {
+      post.setDataValue('commentsCount', post.comments.length);
+      post.setDataValue('comments', undefined);
+
+      return hateoas(post.dataValues)
+        .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}` })
+        .addLink('get likes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/likes` })
+        .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
+        .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
+        .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
+        .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${post.id}` })
+        .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${post.id}` });
+    });
 
     const paginatedPosts = getPagingData({ count }, posts, req.baseUrl, page, limit);
 
@@ -112,7 +110,7 @@ exports.getPostById = async (req, res, next) => {
         include: [
           { model: Users, as: 'user', attributes: { exclude: 'password' } },
           'comments',
-          'votes',
+          'likes',
         ],
       },
     );
@@ -122,7 +120,7 @@ exports.getPostById = async (req, res, next) => {
     }
 
     const result = hateoas(post.dataValues)
-      .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/votes` })
+      .addLink('get likes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/likes` })
       .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
       .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
       .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
@@ -203,7 +201,7 @@ exports.updatePost = async (req, res, next) => {
 
     const updatedPost = hateoas(datas.dataValues)
       .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}` })
-      .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/votes` })
+      .addLink('get likes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/likes` })
       .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
       .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
       .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
@@ -217,13 +215,13 @@ exports.updatePost = async (req, res, next) => {
 };
 
 /**
- * Get votes related to a post
+ * Get likes related to a post
  * @param req
  * @param res
  * @param next
  * @return {Promise<*>}
  */
-exports.getPostVotes = async (req, res, next) => {
+exports.getPostLikes = async (req, res, next) => {
   const { id } = req.params;
 
   if (!id || !isUUID(id)) {
@@ -231,13 +229,13 @@ exports.getPostVotes = async (req, res, next) => {
   }
 
   try {
-    const post = await Posts.findOne({ where: { id }, include: ['votes'] });
+    const post = await Posts.findOne({ where: { id }, include: ['likes'] });
 
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    return res.json(post.votes);
+    return res.json(post.likes);
   } catch (e) {
     errorHandler(e, res);
   }
@@ -276,25 +274,17 @@ exports.getPostComments = async (req, res, next) => {
 };
 
 /**
- * Vote for a post (-1, 0, 1)
+ * Like a post
  * @param req
  * @param res
  * @param next
  * @return {Promise<*>}
  */
-exports.handleVote = async (req, res, next) => {
+exports.handleLike = async (req, res, next) => {
   const { id } = req.params;
 
   if (!id || !isUUID(id)) {
     return next();
-  }
-
-  if (typeof req.body.vote === 'number') {
-    return res.status(422).json({ message: 'The vote value must be a string' });
-  }
-
-  if (!req.body.vote || req.body.vote != '-1' || req.body.vote > 1) {
-    return res.status(422).json({ message: 'The vote value must be -1, 0 or 1' });
   }
 
   try {
@@ -304,17 +294,14 @@ exports.handleVote = async (req, res, next) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    const vote = await Votes.findOne({ where: { userId: req.user.id, postId: id } });
+    const like = await Likes.findOne({ where: { userId: req.user.id, postId: id } });
 
-    if (!vote) {
-      const newVote = await post.createVote({ userId: req.user.id, vote: req.body.vote });
-      return res.status(201).json(newVote);
+    if (!like) {
+      const newLike = await post.createLike({ userId: req.user.id });
+      return res.status(201).json(newLike);
     }
 
-    vote.vote = req.body.vote;
-    const updatedVote = await vote.save();
-
-    return res.json(updatedVote);
+    return res.status(409).json({ message: 'You already liked this post' });
   } catch (e) {
     errorHandler(e, res);
   }
@@ -459,6 +446,41 @@ exports.unsharePost = async (req, res, next) => {
     await feed.removePost(post);
 
     return res.json({ message: 'Post has been unshared from your feed' });
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Unlike a post
+ * @param req
+ * @param res
+ * @param next
+ * @return {Promise<*>}
+ */
+exports.unlikePost = async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!id || !isUUID(id)) {
+    return next();
+  }
+
+  try {
+    const post = await Posts.findOne({ where: { id } });
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const like = await Likes.findOne({ where: { userId: req.user.id, postId: id } });
+
+    if (!like) {
+      return res.status(404).json({ message: 'Can\'t unlike something not liked' });
+    }
+
+    await like.destroy();
+
+    return res.json({ message: 'The post has been unliked' });
   } catch (e) {
     errorHandler(e, res);
   }

@@ -52,6 +52,7 @@ const actions = {
     user.accessToken = accessToken
     localStorage.setItem('user', JSON.stringify(user))
     commit('refreshToken', accessToken)
+    console.info('Access token updated, you can ignore the previous 401 error')
   }
 }
 

@@ -1,42 +1,34 @@
 <template>
-  <div class="feed mt-4">
+  <div class="feed px-2">
     <ul>
-      <li v-for="post in posts" :key="post.id">
-        <TextPost
-          :id="post.id"
-          :textContent="post.textContent"
-          :username="post.username"
-          :date="post.createdAt"
-          :commentsCount="post.commentsCount"
-        />
+      <li class="mb-4 shadow-3 shadow-3-strong" v-for="(post, index) in posts" :key="index">
+        <TextPost :post="post" />
       </li>
     </ul>
 
-    <Loading v-show="isLoading" />
+    <p v-if="this.postsLength < 1" class="alert alert-warning">Il n y a pas encore d'articles</p>
+    <p v-if="this.postsLength > 0 && this.noResult" class="alert alert-warning">Il n y a plus d'articles à charger</p>
 
   </div>
 </template>
 
 <script>
 import TextPost from '../components/TextPost'
-import Loading from '../components/Loading'
 
 export default {
   name: 'PostsList',
 
   components: {
-    TextPost,
-    Loading
+    TextPost
   },
 
   props: {
-    posts: Array
-  },
-
-  data () {
-    return {
-      isLoading: false
-    }
+    posts: Array,
+    postsLength: {
+      type: Number,
+      default: 0
+    },
+    noResult: Boolean
   }
 }
 </script>

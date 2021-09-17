@@ -1,17 +1,17 @@
 <template>
-  <section class="container">
-    <h1>Connexion</h1>
+  <section class="container shadow-5 shadow-5-strong py-5 px-4" aria-labelledby="section-title">
+    <h1 id="section-title">Connexion</h1>
     <Form class="login-form row" @submit="onSubmit" :validation-schema="schema">
 
-      <div class="col-12 mb-3">
+      <div class="form-group col-12 mb-3">
         <label for="username" class="form-label">Nom d'utilisateur</label>
-        <Field name="username" type="text" class="form-control" id="username"/>
+        <Field name="username" type="text" class="form-control form-control-lg" id="username"/>
         <ErrorMessage name="username" class="invalid-feedback" as="p"/>
       </div>
 
-      <div class="col-12 mb-3">
+      <div class="form-group col-12 mb-3">
         <label for="password" class="form-label">Mot de passe</label>
-        <Field name="password" type="password" class="form-control" id="password"/>
+        <Field name="password" type="password" class="form-control form-control-lg" id="password"/>
         <ErrorMessage name="password" class="invalid-feedback" as="p"/>
       </div>
 
@@ -35,8 +35,8 @@
       </div>
 
       <div class="col-12 form-actions mt-4">
-        <button type="submit" class="btn btn-primary mb-3">Connexion</button>
-        <router-link to="/signup" class="btn btn-primary mb-3">Créer mon compte</router-link>
+        <router-link to="/signup" class="btn btn-black mb-3">Créer mon compte</router-link>
+        <button type="submit" class="btn btn-outline-primary mb-3">Connexion</button>
       </div>
     </Form>
   </section>
@@ -80,6 +80,8 @@ export default {
         if (e.status === 401) {
           this.message = 'Identifiants incorrects'
         }
+
+        console.error(e)
       }
     }
   },
@@ -91,9 +93,9 @@ export default {
   },
 
   created () {
-    // if (this.loggedIn) {
-    //   this.$router.push('/')
-    // }
+    if (this.loggedIn) {
+      this.$router.push('/')
+    }
   }
 }
 </script>
@@ -101,8 +103,6 @@ export default {
 <style scoped lang="scss">
 .container {
   margin-top: 50px;
-  border: 1px solid #333;
-  padding: 20px 10px;
 
   h1 {
     margin-bottom: 20px;

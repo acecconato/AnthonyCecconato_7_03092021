@@ -1,6 +1,6 @@
 <template>
   <section class="container" id="actions">
-    <div class="row mt-4">
+    <div class="row pt-5 mt-4">
       <div class="col-12">
         <h2>Rechercher un utilisateur</h2>
         <SearchUser/>
@@ -8,27 +8,28 @@
     </div>
   </section>
 
-  <section aria-labelledby="feed-title">
-    <div class="container">
-      <h2 class="container mt-5 section-title" id="feed-title">Fil d'actualité</h2>
-      <Button class="mt-4" @button-click="postAdd" text="Ajouter une publication" type="button"/>
-    </div>
+  <section class="container mt-4" aria-labelledby="feed-title">
+    <h2 id="feed-title">Fil d'actualité</h2>
 
-    <div class="container mt-4 filters">
-      <h3>Filtres</h3>
-      <a aria-label="Tout afficher" class="btn btn-filter active">Tout</a>
-      <a aria-label="Afficher seulement les gifs et images" class="btn btn-filter disabled">Gifs & images</a>
-      <a aria-label="Afficher seulement les textes" class="btn btn-filter disabled">Textes</a>
+<!--    Todo post add form -->
 
-      <PostsList :posts="posts" />
-
+    <div class="container mt-4">
+      <infinite-scroll @infinite-scroll="loadMorePosts" :noResult="noResult" message="">
+        <PostsList
+          :no-result="noResult"
+          :posts-length="posts.length"
+          :posts="posts"
+        />
+      </infinite-scroll>
     </div>
   </section>
 </template>
 
 <script>
+import InfiniteScroll from 'infinite-loading-vue3'
+
+import postsApi from '../api/posts'
 import SearchUser from '../components/SearchUser'
-import Button from '../components/Button'
 import PostsList from '../components/PostsList'
 
 export default {
@@ -36,38 +37,36 @@ export default {
   components: {
     PostsList,
     SearchUser,
-    Button
+    InfiniteScroll
   },
 
   data () {
     return {
-      posts: []
+      posts: [],
+      size: 3,
+      page: 0,
+      noResult: false,
+      message: ''
     }
   },
 
   methods: {
-    postAdd () {
-      console.log('CLICKED')
+    async loadMorePosts () {
+      if (this.page < this.totalPages) {
+        const newPosts = await postsApi.getPosts(++this.page, this.size)
+        this.posts.push(...newPosts.rows)
+        this.totalPages = newPosts.totalPages
+      } else {
+        this.noResult = true
+        this.message = 'Il n y a plus de publication à charger'
+      }
     }
   },
 
-  created () {
-    this.posts = [
-      {
-        id: 1,
-        textContent: 'TEST 01',
-        username: 'John Doe',
-        createdAt: 'Il y a 3 jours',
-        commentsCount: 28
-      },
-      {
-        id: 2,
-        textContent: 'TEST 02',
-        username: 'John Doe',
-        createdAt: 'Il y a 3 jours',
-        commentsCount: 10
-      }
-    ]
+  async created () {
+    const posts = await postsApi.getPosts(this.page, this.size)
+    this.totalPages = posts.totalPages
+    this.posts = posts.rows
   }
 }
 </script>
