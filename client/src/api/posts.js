@@ -55,5 +55,19 @@ export default {
       console.error(e.response)
       throw e.response
     }
+  },
+
+  /**
+   * Delete a post
+   * @param postId
+   * @return {Promise<AxiosResponse<any>>}
+   */
+  async deletePost (postId) {
+    try {
+      return await api.delete(`/posts/${postId}`)
+    } catch (e) {
+      console.error(e.response)
+      throw e.response
+    }
   }
 }

@@ -2,7 +2,7 @@
   <div class="feed px-2">
     <ul>
       <li class="mb-4 shadow-3 shadow-3-strong" v-for="(post, index) in posts" :key="index">
-        <Post :post="post" />
+        <Post @delete-post="$emit('delete-post', $event, post.id)" :post="post" />
       </li>
     </ul>
 
@@ -30,7 +30,15 @@ export default {
       default: 0
     },
     noResult: Boolean
-  }
+  },
+
+  methods: {
+    test (...args) {
+      console.log(args)
+    }
+  },
+
+  emits: ['delete-post']
 }
 </script>
 

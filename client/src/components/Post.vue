@@ -11,7 +11,7 @@
       <p class="card-text mt-2">
         {{ $filters.striptags(this.post.content) }}
 
-<!--        <img v-if="this.post.media" class="post-media" :src="this.post.media" alt="">-->
+        <img v-if="this.post.media" class="post-media" :src="this.post.media" alt="">
       </p>
 
       <div class="card-text bottom-card d-flex justify-content-between align-items-center">
@@ -48,11 +48,21 @@
           </div>
         </div>
       </div>
+
+      <button
+        v-if="isOwner || isAdmin"
+        @click.stop="$emit('delete-post', $event, this.post.id)"
+        type="button"
+        class="btn btn-primary btn-floating btn-close"
+      >
+        <BIconX/>
+      </button>
     </article>
   </div>
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import TimeAgo from 'javascript-time-ago'
 import fr from 'javascript-time-ago/locale/fr'
 import postsApi from '../api/posts'
@@ -79,6 +89,11 @@ export default {
   },
 
   computed: {
+
+    ...mapGetters({
+      isAdmin: 'auth/isAdmin'
+    }),
+
     showDate () {
       if (this.post.createdAt !== this.post.updatedAt) {
         return `Mis à jour ${timeAgo.format(new Date(this.post.updatedAt))}`
@@ -97,6 +112,10 @@ export default {
 
     showNbLikes () {
       return 0
+    },
+
+    isOwner () {
+      return this.post.userId === this.$store.state.auth.user.userId
     }
   },
 
@@ -134,7 +153,7 @@ article {
 
   &:hover {
     transition: box-shadow 350ms;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0 3px 6px, rgba(0, 0, 0, 0.23) 0 3px 6px;
   }
 
   .card-bottom-left {
@@ -188,6 +207,26 @@ article {
 
   .bottom-card {
     margin-top: 30px;
+  }
+
+  .btn-close {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    background: red;
+    opacity: 1;
+    top: 5px;
+    right: 5px;
+    height: 30px;
+    width: 30px;
+    transition: opacity 100ms;
+
+    &:hover {
+      opacity: 0.5;
+      transition: opacity 200ms ease-out;
+    }
   }
 }
 </style>

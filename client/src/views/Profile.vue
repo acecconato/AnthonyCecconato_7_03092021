@@ -7,6 +7,7 @@
     <ul>
       <li>Nom d'utilisateur <span>{{ currentUser.username }}</span></li>
       <li>Adresse mail <span>{{ currentUser.email }}</span></li>
+      <li>Role <span>{{ currentUser.role }}</span></li>
     </ul>
 
     <h2 class="h4 mt-4 mb-3">Que souhaitez-vous faire ?</h2>
@@ -102,11 +103,13 @@ ul {
 
   li {
     margin-bottom: 15px;
-    font-size: 1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
 
     span {
       font-size: initial;
       display: block;
+      font-weight: initial;
     }
   }
 }

@@ -21,6 +21,7 @@
           :no-result="noResult"
           :posts-length="posts.length"
           :posts="posts"
+          @delete-post="onPostDelete"
         />
       </infinite-scroll>
 
@@ -73,6 +74,17 @@ export default {
 
     onPostAdd (post) {
       this.posts.unshift(post)
+    },
+
+    async onPostDelete (e, postId) {
+      try {
+        if (confirm('Souhaitez-vous vraiment supprimer cette publication ?')) {
+          await postsApi.deletePost(postId)
+          this.posts = this.posts.filter((post) => post.id !== postId)
+        }
+      } catch (e) {
+        alert(`Impossible de supprimer la publication : ${e.data.message}`)
+      }
     }
   },
 

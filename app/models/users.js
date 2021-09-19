@@ -154,6 +154,11 @@ module.exports = (sequelize, DataTypes) => {
           user.setDataValue('password', hash);
         }
       },
+
+      async beforeBulkCreate(user) {
+        const hash = await argon2.hash(user.password);
+        user.setDataValue('password', hash);
+      },
     },
   });
 
