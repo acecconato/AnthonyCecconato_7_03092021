@@ -15,7 +15,7 @@
 
         <div @click="collapse" class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav">
-            <li class="nav-item">
+            <li v-if="isLoggedIn" class="nav-item">
               <router-link to="/" class="nav-link" aria-current="page">Fil d'actualité</router-link>
             </li>
             <li v-if="!isLoggedIn" class="nav-item">
@@ -44,13 +44,10 @@ import { Collapse } from 'bootstrap'
 export default {
   name: 'Navbar',
 
-  props: {
-    isOpen: Boolean
-  },
-
   computed: {
     ...mapGetters({
-      isLoggedIn: 'auth/isLoggedIn'
+      isLoggedIn: 'auth/isLoggedIn',
+      currentUser: 'auth/currentUser'
     })
   },
 
@@ -84,7 +81,6 @@ export default {
     img {
       width: 90px;
       height: auto;
-      background: grey;
     }
   }
 }

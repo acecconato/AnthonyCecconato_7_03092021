@@ -22,9 +22,13 @@ exports.publish = async (req, res) => {
       return res.status(404).json({ message: 'Current user not found' });
     }
 
-    const datas = await user.createPost(req.body, { fields: ['content'] });
+    const datas = await user.createPost(req.body, { fields: ['content', 'media'] });
     const feed = await user.getFeed();
     await feed.addPost(datas);
+
+    datas.setDataValue('commentsCount', 0);
+    datas.setDataValue('user', user);
+    datas.setDataValue('likes', []);
 
     const post = hateoas(datas.dataValues)
       .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}` })
@@ -181,7 +185,7 @@ exports.updatePost = async (req, res, next) => {
     return next();
   }
 
-  const { content } = req.body || undefined;
+  const { content, media } = req.body || undefined;
 
   try {
     const post = await Posts.findOne({ where: { id } });
@@ -196,6 +200,7 @@ exports.updatePost = async (req, res, next) => {
     }
 
     post.content = content || post.content;
+    post.media = media || post.media;
 
     const datas = await post.save();
 

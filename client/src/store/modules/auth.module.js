@@ -2,10 +2,16 @@ import auth from '../../api/auth'
 
 const user = JSON.parse(localStorage.getItem('user'))
 
-const state = () => ((user) ? { status: { loggedIn: true }, user } : { status: { loggedIn: false }, undefined })
+const state = () => ((user) ? { status: { loggedIn: true }, user } : { status: { loggedIn: false }, user: {} })
 
 const getters = {
-  isLoggedIn: state => { return state.status.loggedIn }
+  isLoggedIn: state => {
+    return state.status.loggedIn
+  },
+
+  currentUser: state => {
+    return state.user || {}
+  }
 }
 
 const mutations = {

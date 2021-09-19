@@ -12,7 +12,7 @@ exports.exportMyData = async (req, res) => {
   const user = await Users.findOne({
     where: { id: req.user.id },
     attributes: { exclude: ['password'] },
-    include: ['comments'],
+    include: ['comments', 'posts'],
   });
 
   if (!user) {

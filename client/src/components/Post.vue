@@ -10,9 +10,11 @@
 
       <p class="card-text mt-2">
         {{ $filters.striptags(this.post.content) }}
+
+<!--        <img v-if="this.post.media" class="post-media" :src="this.post.media" alt="">-->
       </p>
 
-      <div class="card-text bottom-card d-flex justify-content-between align-items-center mt-4">
+      <div class="card-text bottom-card d-flex justify-content-between align-items-center">
         <div class="card-bottom-left">
           <div class="position-relative">
             <a v-if="!isLiked" href="#" title="Mettre un j'aime" @click.stop.prevent="likeClick($event, post.id)">
@@ -59,7 +61,7 @@ TimeAgo.addDefaultLocale(fr)
 const timeAgo = new TimeAgo('fr-FR')
 
 export default {
-  name: 'TextPost',
+  name: 'Post',
 
   data () {
     return {
@@ -174,6 +176,18 @@ article {
   .card-createdat {
     font-size: 0.825rem;
     margin-top: 3px;
+  }
+
+  .post-media {
+    display: block;
+    width: 100%;
+    object-fit: contain;
+    margin: 20px auto 20px auto;
+    border-radius: 5px;
+  }
+
+  .bottom-card {
+    margin-top: 30px;
   }
 }
 </style>

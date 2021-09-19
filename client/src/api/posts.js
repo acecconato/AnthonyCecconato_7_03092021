@@ -26,7 +26,7 @@ export default {
     try {
       await api.post(`/posts/${postId}/likes`)
     } catch (e) {
-      console.error(e)
+      console.error(e.response)
     }
   },
 
@@ -39,7 +39,21 @@ export default {
     try {
       await api.delete(`/posts/${postId}/likes`)
     } catch (e) {
-      console.error(e)
+      console.error(e.response)
+    }
+  },
+
+  async addPost (data) {
+    try {
+      const response = await api.post('/posts', {
+        content: data.content,
+        media: data.media
+      })
+
+      return response.data
+    } catch (e) {
+      console.error(e.response)
+      throw e.response
     }
   }
 }

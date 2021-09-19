@@ -117,7 +117,6 @@ export default {
   methods: {
     async onSubmit (formData) {
       try {
-        console.log(formData)
         await usersApi.updatePassword(this.currentUser.userId, formData.old_password, formData.password)
         this.success = true
       } catch (e) {
@@ -129,7 +128,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped lang="scss">
 .btn[type="submit"] {
   width: fit-content;
   margin-left: 12px;

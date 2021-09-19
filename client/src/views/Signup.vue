@@ -30,11 +30,11 @@
       </div>
 
       <div class="col-auto form-actions mt-4">
-        <router-link to="/login" class="btn btn-dark mb-3">
+        <router-link to="/login" class="btn btn-lg btn-dark mb-3">
           <BIconArrowLeftCircle/>
           Retour
         </router-link>
-        <button type="submit" class="btn btn-outline-primary mb-3">Créer mon compte</button>
+        <button type="submit" class="btn  btn-lg btn-outline-primary mb-3">Créer mon compte</button>
       </div>
     </Form>
 
@@ -43,7 +43,7 @@
     </div>
 
     <p v-if="success" class="alert alert-success">
-      Compte crée avec succès. Vous pouvez désormais <router-link to="/login">vous connecter</router-link>
+      Compte crée avec succès. <br>Vous pouvez désormais <router-link to="/login">vous connecter</router-link>
     </p>
 
   </section>
@@ -92,17 +92,17 @@ export default {
   methods: {
     async onSubmit (formData) {
       try {
-        const response = await auth.signup(formData)
+        await auth.signup(formData)
         this.success = true
-        console.log(response)
       } catch (e) {
         switch (e.status) {
           case 422:
-            console.log(e.data)
+            console.error(e.data)
             this.message = e.data
             break
           default:
             this.message = 'Une erreur inconnue est survenue'
+            console.error(e.data)
         }
       }
     }

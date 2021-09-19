@@ -10,9 +10,13 @@
     </ul>
 
     <h2 class="h4 mt-4 mb-3">Que souhaitez-vous faire ?</h2>
+
+    <p v-if="unknowError" class="alert alert-danger">Une erreur est survenue</p>
+
     <Button type="button" classes="btn-primary" @button-click="logoutClick" text="Me déconnecter"/>
 
-    <UpdatePassword />
+    <!-- Update pasword component (form + modal) -->
+    <UpdatePassword/>
 
     <Button type="button" classes="btn-primary" @button-click="exportDataClick" text="Exporter mes données"/>
     <Button type="button" classes="btn-outline-danger" @button-click="deleteAccountClick" text="Supprimer mon compte"/>
@@ -20,8 +24,12 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+import fileDownload from 'js-file-download'
+
 import Button from '@/components/Button'
 import UpdatePassword from '@/components/UpdatePassword'
+import usersApi from '@/api/users'
 
 export default {
   name: 'Profile',
@@ -31,10 +39,17 @@ export default {
     UpdatePassword
   },
 
-  computed: {
-    currentUser () {
-      return this.$store.state.auth.user || {}
+  data () {
+    return {
+      unknowError: false
     }
+  },
+
+  computed: {
+    ...mapGetters({
+      isLoggedIn: 'auth/isLoggedIn',
+      currentUser: 'auth/currentUser'
+    })
   },
 
   methods: {
@@ -43,20 +58,31 @@ export default {
         await this.$store.dispatch('auth/logout')
         await this.$router.push('/')
       } catch (e) {
-        console.error({ code: e.status, message: e.data.message })
+        console.error(e.data)
       }
     },
 
-    changePasswordClick () {
-
+    async exportDataClick () {
+      try {
+        const response = await usersApi.exportMyData()
+        fileDownload(response.data, `${this.currentUser.username}_data.csv`)
+      } catch (e) {
+        console.error(e.data)
+        this.unknowError = true
+      }
     },
 
-    exportDataClick () {
-
-    },
-
-    deleteAccountClick () {
-
+    async deleteAccountClick () {
+      if (window.confirm('Attention, vous êtes sur le point de supprimer votre compte. Cette action est irréversible. Souhaitez-vous tout de même continuer ?')) {
+        try {
+          await usersApi.deleteUser(this.currentUser.userId)
+          await this.$store.dispatch('auth/logout')
+          await this.$router.push('/')
+        } catch (e) {
+          console.error(e.data)
+          this.unknowError = true
+        }
+      }
     }
   },
 

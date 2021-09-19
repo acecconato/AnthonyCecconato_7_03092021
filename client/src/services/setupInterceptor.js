@@ -24,6 +24,12 @@ const setup = (store) => {
       const originalConfig = err.config
 
       if (originalConfig.url !== '/auth/login' && err.response) {
+        // 403: Forbidden access
+        if (err.response && err.response.status === 403) {
+          localStorage.removeItem('user')
+          return Promise.resolve(false)
+        }
+
         // 401: accessToken is probably expired, or the user isn't connected
         if (err.response && err.response.status === 401 && !originalConfig._retry) {
           originalConfig._retry = true

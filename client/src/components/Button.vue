@@ -1,6 +1,6 @@
 <template>
   <router-link :to="to" v-if="type === 'link'">{{ text }}</router-link>
-  <a href="#" :title="text" v-else :to="to" @click="$emit('button-click')" :class="classes" class="btn">{{ text }}</a>
+  <a href="#" :title="text" v-else :to="to" @click.prevent="$emit('button-click')" :class="classes" class="btn">{{ text }}</a>
 </template>
 
 <script>
@@ -11,7 +11,7 @@ export default {
     text: String,
     to: String,
     type: { type: String, default: 'link' },
-    classes: String
+    classes: [String, Object, Array]
   }
 }
 </script>

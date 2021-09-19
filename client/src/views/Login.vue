@@ -35,8 +35,8 @@
       </div>
 
       <div class="col-12 form-actions mt-4">
-        <router-link to="/signup" class="btn btn-black mb-3">Créer mon compte</router-link>
-        <button type="submit" class="btn btn-outline-primary mb-3">Connexion</button>
+        <router-link to="/signup" class="btn btn-lg btn-black mb-3">Créer mon compte</router-link>
+        <button type="submit" class="btn btn-lg btn-outline-primary mb-3">Connexion</button>
       </div>
     </Form>
   </section>
@@ -45,6 +45,7 @@
 <script>
 import { Field, Form, ErrorMessage } from 'vee-validate'
 import * as yup from 'yup'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Login',
@@ -77,19 +78,17 @@ export default {
         await this.$store.dispatch('auth/login', user)
         await this.$router.push('/')
       } catch (e) {
-        if (e.status === 401) {
-          this.message = 'Identifiants incorrects'
-        }
-
-        console.error(e)
+        this.message = e.data.message
+        console.error(e.data)
       }
     }
   },
 
   computed: {
-    loggedIn () {
-      return this.$store.state.auth.status.loggedIn
-    }
+    ...mapGetters({
+      isLoggedIn: 'auth/isLoggedIn',
+      currentUser: 'auth/currentUser'
+    })
   },
 
   created () {

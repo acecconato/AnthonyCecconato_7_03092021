@@ -2,24 +2,25 @@
   <div class="feed px-2">
     <ul>
       <li class="mb-4 shadow-3 shadow-3-strong" v-for="(post, index) in posts" :key="index">
-        <TextPost :post="post" />
+        <Post :post="post" />
       </li>
     </ul>
 
-    <p v-if="this.postsLength < 1" class="alert alert-warning">Il n y a pas encore d'articles</p>
-    <p v-if="this.postsLength > 0 && this.noResult" class="alert alert-warning">Il n y a plus d'articles à charger</p>
-
+    <p v-if="this.postsLength > 0 && this.noResult" class="alert alert-info shadow-5 rounded-1">
+      Fin du fil d'actualité<br >
+      Il n y a plus de publications à charger
+    </p>
   </div>
 </template>
 
 <script>
-import TextPost from '../components/TextPost'
+import Post from './Post'
 
 export default {
   name: 'PostsList',
 
   components: {
-    TextPost
+    Post
   },
 
   props: {

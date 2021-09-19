@@ -22,6 +22,10 @@ module.exports = {
         allowNull: false,
       },
 
+      media: {
+        type: Sequelize.TEXT,
+      },
+
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
