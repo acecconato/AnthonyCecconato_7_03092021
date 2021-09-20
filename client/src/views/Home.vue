@@ -16,12 +16,14 @@
     </div>
 
     <div class="container mt-4">
-      <infinite-scroll v-if="this.posts.length > 1" @infinite-scroll="loadMorePosts" :noResult="noResult" message="">
+      <infinite-scroll v-if="this.posts.length >= 1" @infinite-scroll="loadMorePosts" :noResult="noResult" message="">
         <PostsList
           :no-result="noResult"
           :posts-length="posts.length"
           :posts="posts"
           @delete-post="onPostDelete"
+          @increase-likes="onIncreaseLikes"
+          @decrease-likes="onDecreaseLikes"
         />
       </infinite-scroll>
 
@@ -52,7 +54,7 @@ export default {
   data () {
     return {
       posts: [],
-      size: 3,
+      size: 6,
       page: 0,
       noResult: false,
       message: '',
@@ -73,7 +75,7 @@ export default {
     },
 
     onPostAdd (post) {
-      this.posts.unshift(post)
+      this.posts = [post, ...this.posts]
     },
 
     async onPostDelete (e, postId) {
@@ -85,6 +87,21 @@ export default {
       } catch (e) {
         alert(`Impossible de supprimer la publication : ${e.data.message}`)
       }
+    },
+
+    async onIncreaseLikes (e, postId) {
+      const response = await postsApi.like(postId)
+      const like = response.data
+
+      const index = this.posts.findIndex((post) => post.id === postId)
+      this.posts[index].likes.push(like)
+    },
+
+    async onDecreaseLikes (e, postId) {
+      await postsApi.unlike(postId)
+
+      const index = this.posts.findIndex((post) => post.id === postId)
+      this.posts[index].likes = this.posts[index].likes.filter((like) => like.userId !== this.$store.state.auth.user.userId)
     }
   },
 

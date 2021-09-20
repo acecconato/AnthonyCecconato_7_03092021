@@ -4,6 +4,7 @@ import Home from '../views/Home'
 import Login from '../views/Login'
 import Signup from '../views/Signup'
 import Profile from '../views/Profile'
+import Single from '../views/Single'
 
 const routes = [
   {
@@ -25,6 +26,11 @@ const routes = [
     path: '/profile',
     name: 'Profile',
     component: Profile
+  },
+  {
+    path: '/single/:id',
+    name: 'Single',
+    component: Single
   }
 ]
 

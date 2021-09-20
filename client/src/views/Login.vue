@@ -16,7 +16,7 @@
       </div>
 
       <div class="col-12 form-check form-switch">
-        <Field name="remember" value="true" class="form-check-input" type="checkbox" id="remember" />
+        <Field name="remember" value="true" class="form-check-input" type="checkbox" id="remember"/>
         <label class="form-check-label" for="remember">Garder ma session active</label>
       </div>
 
@@ -92,7 +92,7 @@ export default {
   },
 
   created () {
-    if (this.loggedIn) {
+    if (this.isLoggedIn) {
       this.$router.push('/')
     }
   }

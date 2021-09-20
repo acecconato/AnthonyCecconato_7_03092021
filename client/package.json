@@ -17,6 +17,7 @@
     "js-file-download": "^0.4.12",
     "mdb-ui-kit": "^3.9.0",
     "striptags": "^3.2.0",
+    "vanilla-back-to-top": "^7.2.1",
     "vee-validate": "^4.4.11",
     "vue": "^3.0.0",
     "vue-gifplayer": "^1.0.2",

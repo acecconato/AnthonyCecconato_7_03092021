@@ -6,7 +6,10 @@
 </template>
 
 <script>
+import { addBackToTop } from 'vanilla-back-to-top'
 import Navbar from './components/Navbar'
+
+addBackToTop()
 
 export default {
   name: 'App',

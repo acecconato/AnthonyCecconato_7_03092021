@@ -89,6 +89,7 @@ exports.addComment = async (req, res) => {
     }
 
     const comment = await post.createComment({ content: req.body.content, userId: req.user.id });
+    comment.setDataValue('user', await comment.getUser());
 
     const result = hateoas(comment.dataValues)
       .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}` })

@@ -9624,6 +9624,11 @@
     "spdx-correct" "^3.0.0"
     "spdx-expression-parse" "^3.0.0"
 
+"vanilla-back-to-top@^7.2.1":
+  "integrity" "sha512-AZiYYmoe0RTbzTQs/reoXyCVqT20+cerQOsnmM/WYPJRwOAZjH0GRaWLw8QKhXcpch1UsLJHg7IwbvvzUPrcLg=="
+  "resolved" "https://registry.npmjs.org/vanilla-back-to-top/-/vanilla-back-to-top-7.2.1.tgz"
+  "version" "7.2.1"
+
 "vary@~1.1.2":
   "integrity" "sha1-IpnwLG3tMNSllhsLn3RSShj2NPw="
   "resolved" "https://registry.npmjs.org/vary/-/vary-1.1.2.tgz"

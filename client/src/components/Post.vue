@@ -17,17 +17,27 @@
       <div class="card-text bottom-card d-flex justify-content-between align-items-center">
         <div class="card-bottom-left">
           <div class="position-relative">
-            <a v-if="!isLiked" href="#" title="Mettre un j'aime" @click.stop.prevent="likeClick($event, post.id)">
+            <a
+              v-if="!isLikedByUser"
+              href="#"
+              title="Mettre un j'aime"
+              @click.stop.prevent="$emit('increase-likes', $event, post.id)"
+            >
               <BIconHeart/>
             </a>
 
-            <a v-else href="#" title="Enlever mon j'aime" class="is-liked"
-               @click.stop.prevent="unlikeClick($event, post.id)">
+            <a
+              v-else
+              href="#"
+              title="Enlever mon j'aime"
+              class="is-liked"
+              @click.stop.prevent="$emit('decrease-likes', $event, post.id)"
+            >
               <BIconHeartFill/>
             </a>
 
             <div class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">
-              {{ nbLikes }} <span class="visually-hidden"> personnes aimes cet article</span>
+              {{ likesCount }} <span class="visually-hidden"> personnes aimes cet article</span>
             </div>
           </div>
         </div>
@@ -40,10 +50,10 @@
             </a>
           </div>
 
-          <div class="card-comments">
+          <div v-if="!isSinglePage" class="card-comments">
             <BIconChatDots/>
             <div class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">
-              {{ this.post.commentsCount }} <span class="visually-hidden"> commentaires</span>
+              {{ commentsCount }} <span class="visually-hidden"> commentaires</span>
             </div>
           </div>
         </div>
@@ -53,9 +63,20 @@
         v-if="isOwner || isAdmin"
         @click.stop="$emit('delete-post', $event, this.post.id)"
         type="button"
-        class="btn btn-primary btn-floating btn-close"
+        class="btn btn-primary btn-floating btn-delete"
+        title="Supprimer la publication"
       >
-        <BIconX/>
+        <BIconX/> <span class="visually-hidden">Supprimer la publication</span>
+      </button>
+
+      <button
+        v-else
+        @click.stop.prevent="onPostReport"
+        type="button"
+        class="btn btn-primary btn-floating btn-report"
+        title="Signaler la publication"
+      >
+        <BIconExclamation/> <span class="visually-hidden">Signaler la publication</span>
       </button>
     </article>
   </div>
@@ -63,20 +84,15 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import TimeAgo from 'javascript-time-ago'
-import fr from 'javascript-time-ago/locale/fr'
-import postsApi from '../api/posts'
-
-TimeAgo.addDefaultLocale(fr)
-const timeAgo = new TimeAgo('fr-FR')
+import timeAgo from '@/services/timeAgo'
+import postsApi from '@/api/posts'
 
 export default {
   name: 'Post',
 
   data () {
     return {
-      isLiked: false,
-      nbLikes: 0
+      isSinglePage: false
     }
   },
 
@@ -110,38 +126,42 @@ export default {
       return 'Utilisateur supprimé'
     },
 
-    showNbLikes () {
-      return 0
+    likesCount () {
+      return this.post.likes.length || 0
     },
 
     isOwner () {
       return this.post.userId === this.$store.state.auth.user.userId
+    },
+
+    isLikedByUser () {
+      return this.post.likes.find((like) => like.userId === this.$store.state.auth.user.userId)
+    },
+
+    commentsCount () {
+      return this.post.commentsCount || 0
     }
   },
 
   methods: {
-    onCardClick (e) {
-      console.log('Outch')
+    onCardClick () {
+      this.$router.push(`/single/${this.post.id}`)
     },
 
-    likeClick () {
-      this.isLiked = true
-      this.nbLikes++
-      postsApi.like(this.post.id)
-    },
-
-    unlikeClick () {
-      this.isLiked = false
-      this.nbLikes--
-      postsApi.unlike(this.post.id)
+    async onPostReport () {
+      if (confirm('L\'administrateur sera notifié, souhaitez-vous signaler cette publication ?')) {
+        try {
+          await postsApi.postReport(this.post.id)
+          alert('Publication signalée avec succès')
+        } catch (e) {
+          alert(e.data.message)
+        }
+      }
     }
   },
 
   created () {
-    const userId = this.$store.state.auth.user.userId
-    this.nbLikes = this.post.likes.length
-
-    this.isLiked = !!this.post.likes.find((like) => like.userId === userId)
+    this.isSinglePage = this.$route.name === 'Single'
   }
 }
 </script>
@@ -209,24 +229,33 @@ article {
     margin-top: 30px;
   }
 
-  .btn-close {
+  .btn-delete,
+  .btn-report {
     position: absolute;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 3rem;
-    background: red;
     opacity: 1;
-    top: 5px;
-    right: 5px;
+    top: -10px;
+    right: -10px;
     height: 30px;
     width: 30px;
-    transition: opacity 100ms;
+    transition: opacity 100ms, transform 150ms;
 
     &:hover {
       opacity: 0.5;
-      transition: opacity 200ms ease-out;
+      transition: opacity 200ms ease-out, transform 300ms ease-out;
+      transform: scale(1.2);
     }
+  }
+
+  .btn-delete {
+    background: red;
+  }
+
+  .btn-report {
+    background: orange
   }
 }
 </style>

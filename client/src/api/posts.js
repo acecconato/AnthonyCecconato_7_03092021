@@ -24,7 +24,7 @@ export default {
    */
   async like (postId) {
     try {
-      await api.post(`/posts/${postId}/likes`)
+      return await api.post(`/posts/${postId}/likes`)
     } catch (e) {
       console.error(e.response)
     }
@@ -65,6 +65,66 @@ export default {
   async deletePost (postId) {
     try {
       return await api.delete(`/posts/${postId}`)
+    } catch (e) {
+      console.error(e.response)
+      throw e.response
+    }
+  },
+
+  /**
+   * Get a post
+   * @param postId
+   * @return {Promise<any>}
+   */
+  async getPost (postId) {
+    try {
+      const response = await api.get(`/posts/${postId}`)
+      return response.data
+    } catch (e) {
+      console.error(e.response)
+      throw e.response
+    }
+  },
+
+  /**
+   * Add a post comment
+   * @param postId
+   * @param comment
+   * @return {Promise<any>}
+   */
+  async addComment (postId, comment) {
+    try {
+      const response = await api.post('/comments', { postId, content: comment })
+      return response.data
+    } catch (e) {
+      console.error(e.response)
+      throw e.response
+    }
+  },
+
+  /**
+   * Get post comments
+   * @param postId
+   * @return {Promise<any>}
+   */
+  async getPostComments (postId) {
+    try {
+      const response = await api.get(`/posts/${postId}/comments`)
+      return response.data
+    } catch (e) {
+      console.error(e.response)
+      throw e.response
+    }
+  },
+
+  /**
+   * Report a post
+   * @param postId
+   * @return {Promise<void>}
+   */
+  async postReport (postId) {
+    try {
+      return await api.post(`/posts/${postId}/reports`)
     } catch (e) {
       console.error(e.response)
       throw e.response

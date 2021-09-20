@@ -123,6 +123,8 @@ exports.getPostById = async (req, res, next) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
+    post.setDataValue('commentsCount', post.comments.length || 0);
+
     const result = hateoas(post.dataValues)
       .addLink('get likes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/likes` })
       .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
@@ -261,13 +263,30 @@ exports.getPostComments = async (req, res, next) => {
   }
 
   try {
-    const post = await Posts.findOne({ where: { id }, include: ['comments'] });
+    // const post = await Posts.findOne({
+    //   where: { id },
+    //   include: [{
+    //     model: Comments,
+    //     as: 'comments',
+    //     include: [{
+    //       model: Users,
+    //       as: 'user',
+    //     }],
+    //   }],
+    //   order: [['createdAt', 'ASC']],
+    // });
 
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+    const comments = await Comments.findAll({
+      where: { postId: id },
+      include: ['user'],
+      order: [['createdAt', 'ASC']],
+    });
+
+    if (!comments) {
+      return res.status(404).json({ message: 'Commentaires introuvables' });
     }
 
-    const result = post.comments.map((comment) => hateoas(comment.dataValues)
+    const result = comments.map((comment) => hateoas(comment.dataValues)
       .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}` })
       .addLink('get comment reports', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` })
       .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` }));
@@ -330,12 +349,12 @@ exports.reportPost = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     const isAlreadyReported = await PostsReports.count({ where: { userId: req.user.id, postId: id } });
     if (isAlreadyReported) {
-      return res.json({ message: 'You have already reported this post' });
+      return res.status(409).json({ message: 'Vous avez déjà signalé cette publication' });
     }
 
     const report = await post.createReport({ userId: req.user.id, postId: id });

@@ -1,8 +1,12 @@
 <template>
   <div class="feed px-2">
     <ul>
-      <li class="mb-4 shadow-3 shadow-3-strong" v-for="(post, index) in posts" :key="index">
-        <Post @delete-post="$emit('delete-post', $event, post.id)" :post="post" />
+      <li class="mb-5 shadow-3 shadow-3-strong" v-for="(post, index) in posts" :key="index">
+        <Post
+          @delete-post="$emit('delete-post', $event, post.id)"
+          @increase-likes="$emit('increase-likes', $event, post.id)"
+          @decrease-likes="$emit('decrease-likes', $event, post.id)"
+          :post="post" />
       </li>
     </ul>
 
@@ -33,12 +37,12 @@ export default {
   },
 
   methods: {
-    test (...args) {
+    onIncreaseLikes (...args) {
       console.log(args)
     }
   },
 
-  emits: ['delete-post']
+  emits: ['delete-post', 'increase-likes', 'decrease-likes']
 }
 </script>
 
