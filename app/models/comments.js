@@ -39,6 +39,7 @@ module.exports = (sequelize, DataTypes) => {
           args: [5, 160],
           msg: 'Username must have 5 to 160 characters',
         },
+        trim: true
       },
     },
 

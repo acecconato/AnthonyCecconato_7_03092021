@@ -65,7 +65,9 @@ export default {
       content: yup.string()
         .required('Le contenu de la publication ne doit pas être vide')
         .min(20, 'Doit contenir au moins 20 charactères')
-        .max(400, 'Ne doit pas dépasser 400 caractères'),
+        .max(400, 'Ne doit pas dépasser 400 caractères')
+        .strict(false)
+        .trim(),
 
       media: yup.string()
         .url('Vous devez insérer une URL (https://...)')
@@ -77,7 +79,7 @@ export default {
     const { value: media, errorMessage: mediaErrors } = useField('media', schema.media)
 
     const contentLength = computed(() => {
-      return (content.value) ? content.value.length : 0
+      return (content.value) ? content.value.trim().length : 0
     })
 
     return {

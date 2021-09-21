@@ -51,13 +51,15 @@ export default {
         .required('Le contenu du commentaire ne doit pas être vide')
         .min(5, 'Doit contenir au moins 5 charactères')
         .max(160, 'Ne doit pas dépasser 160 caractères')
+        .strict(false)
+        .trim()
     }
 
     const { resetForm } = useForm()
     const { value: content, errorMessage: contentErrors } = useField('content', schema.content)
 
     const contentLength = computed(() => {
-      return (content.value) ? content.value.length : 0
+      return (content.value) ? content.value.trim().length : 0
     })
 
     return {
