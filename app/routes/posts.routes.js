@@ -7,6 +7,7 @@ const postsController = require('../controllers/posts.controller');
 const { hasRole } = require('../middlewares/authenticate.middleware');
 
 router.get('/', postsController.getAllPosts);
+router.get('/:username/feed', postsController.getPostsFeed);
 router.get('/:id', postsController.getPostById);
 router.get('/:id/likes', postsController.getPostLikes);
 router.get('/:id/comments', postsController.getPostComments);

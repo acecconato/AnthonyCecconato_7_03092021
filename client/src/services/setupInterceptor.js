@@ -52,6 +52,9 @@ const setup = (store) => {
               store.dispatch('auth/refreshToken', accessToken)
               return axiosInstance(originalConfig)
             }
+          } else {
+            localStorage.removeItem('user')
+            return Promise.reject(err)
           }
         }
       }

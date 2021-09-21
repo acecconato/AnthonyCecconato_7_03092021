@@ -10,11 +10,15 @@
 
         <router-link to="/" class="navbar-brand d-flex justify-content-center flex-column align-items-center mx-auto">
           <img src="../assets/svg/icon.svg" alt="Retour à l'accueil">
-          <h1>Groupomania</h1>
+          <h1 v-if="isHome">Groupomania</h1>
+          <h2 class="h5" v-else>Groupomania</h2>
         </router-link>
 
         <div @click="collapse" class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav">
+            <li v-if="isLoggedIn" class="nav-item">
+              <router-link :to="'/profile/' + currentUser.username" class="nav-link" aria-current="page">Ma page</router-link>
+            </li>
             <li v-if="isLoggedIn" class="nav-item">
               <router-link to="/" class="nav-link" aria-current="page">Fil d'actualité</router-link>
             </li>
@@ -22,10 +26,16 @@
               <router-link to="/login" class="nav-link" aria-current="page">Connexion</router-link>
             </li>
             <li v-if="isLoggedIn" class="nav-item">
-              <router-link to="/profile" class="nav-link" aria-current="page">Mon compte</router-link>
+              <router-link to="/account" class="nav-link" aria-current="page">Mon compte</router-link>
             </li>
+
+            <hr class="d-lg-none">
+
             <li class="nav-item">
               <a class="nav-link" aria-current="page" href="#">CGU</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" aria-current="page" href="#">Mentions légales</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" aria-current="page" href="#">Politique de confidentialité</a>
@@ -81,6 +91,19 @@ export default {
     img {
       width: 90px;
       height: auto;
+    }
+  }
+
+  hr {
+    & ~ li {
+      font-size: 0.8rem;
+    }
+  }
+
+  li {
+    &.btn {
+      width: fit-content;
+      margin: 5px 0;
     }
   }
 }

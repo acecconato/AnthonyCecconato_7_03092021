@@ -18,6 +18,22 @@ export default {
   },
 
   /**
+   * Get all posts related to a user's feed
+   * @param page
+   * @param size
+   * @param username
+   * @returns {Promise<any>}
+   */
+  async getFeedPosts (page = 0, size, username) {
+    try {
+      const response = await api.get(`/posts/${username}/feed`, { params: { page, size } })
+      return response.data
+    } catch (e) {
+      throw e.response
+    }
+  },
+
+  /**
    * Like a post
    * @param postId
    * @return {Promise<void>}

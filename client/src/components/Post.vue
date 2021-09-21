@@ -145,7 +145,7 @@ export default {
 
   methods: {
     onCardClick () {
-      this.$router.push(`/single/${this.post.id}`)
+      this.$router.push({ name: 'Single', params: { id: this.post.id } })
     },
 
     async onPostReport () {

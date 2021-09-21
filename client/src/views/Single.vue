@@ -80,6 +80,7 @@ export default {
 
   methods: {
     async getPostDatas (postId) {
+      console.log('postId', postId)
       try {
         return await postsApi.getPost(postId)
       } catch (e) {

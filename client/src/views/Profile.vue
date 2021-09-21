@@ -1,116 +1,107 @@
 <template>
-  <section class="container shadow-5 shadow-5-strong mt-5 py-5 px-4" aria-labelledby="main-title">
+  <section class="container pt-5 mt-4" aria-labelledby="feed-title">
+    <h2 id="feed-title">Fil de {{ username }}</h2>
 
-    <h1 id="main-title">Mon compte</h1>
+    <Button type="button" text="Retour à l'accueil" classes="btn-dark my-5" @button-click="this.$router.push('/')"/>
 
-    <h2 class="h4 mt-4">Mes informations</h2>
-    <ul>
-      <li>Nom d'utilisateur <span>{{ currentUser.username }}</span></li>
-      <li>Adresse mail <span>{{ currentUser.email }}</span></li>
-      <li>Role <span>{{ currentUser.role }}</span></li>
-    </ul>
+    <div class="container mt-4">
 
-    <h2 class="h4 mt-4 mb-3">Que souhaitez-vous faire ?</h2>
+      <infinite-scroll v-if="this.posts.length >= 1" @infinite-scroll="loadMorePosts" :noResult="noResult" message="">
+        <PostsList
+          :no-result="noResult"
+          :posts-length="posts.length"
+          :posts="posts"
+          @delete-post="onPostDelete"
+          @increase-likes="onIncreaseLikes"
+          @decrease-likes="onDecreaseLikes"
+        />
+      </infinite-scroll>
 
-    <p v-if="unknowError" class="alert alert-danger">Une erreur est survenue</p>
+      <p v-else class="alert alert-info shadow-5 rounded-1">{{ this.loadingMessage }}</p>
 
-    <Button type="button" classes="btn-primary" @button-click="logoutClick" text="Me déconnecter"/>
+    </div>
 
-    <!-- Update pasword component (form + modal) -->
-    <UpdatePassword/>
-
-    <Button type="button" classes="btn-primary" @button-click="exportDataClick" text="Exporter mes données"/>
-    <Button type="button" classes="btn-outline-danger" @button-click="deleteAccountClick" text="Supprimer mon compte"/>
   </section>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import fileDownload from 'js-file-download'
+import InfiniteScroll from 'infinite-loading-vue3'
 
+import postsApi from '@/api/posts'
+import PostsList from '@/components/PostsList'
 import Button from '@/components/Button'
-import UpdatePassword from '@/components/UpdatePassword'
-import usersApi from '@/api/users'
 
 export default {
-  name: 'Profile',
-
+  name: 'Home',
   components: {
-    Button,
-    UpdatePassword
+    PostsList,
+    InfiniteScroll,
+    Button
   },
 
   data () {
     return {
-      unknowError: false
+      posts: [],
+      size: 6,
+      page: 0,
+      noResult: false,
+      message: '',
+      loadingMessage: 'Chargement en cours',
+      username: this.$route.params.username || ''
     }
-  },
-
-  computed: {
-    ...mapGetters({
-      isLoggedIn: 'auth/isLoggedIn',
-      currentUser: 'auth/currentUser'
-    })
   },
 
   methods: {
-    async logoutClick () {
-      try {
-        await this.$store.dispatch('auth/logout')
-        await this.$router.push('/')
-      } catch (e) {
-        console.error(e.data)
+    async loadMorePosts () {
+      if (this.page < this.totalPages) {
+        const newPosts = await postsApi.getPosts(++this.page, this.size)
+        this.posts.push(...newPosts.rows)
+        this.totalPages = newPosts.totalPages
+      } else {
+        this.noResult = true
+        this.message = 'Il n y a plus de publications à charger...'
       }
     },
 
-    async exportDataClick () {
-      try {
-        const response = await usersApi.exportMyData()
-        fileDownload(response.data, `${this.currentUser.username}_data.csv`)
-      } catch (e) {
-        console.error(e.data)
-        this.unknowError = true
-      }
+    onPostAdd (post) {
+      this.posts = [post, ...this.posts]
     },
 
-    async deleteAccountClick () {
-      if (window.confirm('Attention, vous êtes sur le point de supprimer votre compte. Cette action est irréversible. Souhaitez-vous tout de même continuer ?')) {
-        try {
-          await usersApi.deleteUser(this.currentUser.userId)
-          await this.$store.dispatch('auth/logout')
-          await this.$router.push('/')
-        } catch (e) {
-          console.error(e.data)
-          this.unknowError = true
+    async onPostDelete (e, postId) {
+      try {
+        if (confirm('Souhaitez-vous vraiment supprimer cette publication ?')) {
+          await postsApi.deletePost(postId)
+          this.posts = this.posts.filter((post) => post.id !== postId)
         }
+      } catch (e) {
+        alert(`Impossible de supprimer la publication : ${e.data.message}`)
       }
+    },
+
+    async onIncreaseLikes (e, postId) {
+      const response = await postsApi.like(postId)
+      const like = response.data
+
+      const index = this.posts.findIndex((post) => post.id === postId)
+      this.posts[index].likes.push(like)
+    },
+
+    async onDecreaseLikes (e, postId) {
+      await postsApi.unlike(postId)
+
+      const index = this.posts.findIndex((post) => post.id === postId)
+      this.posts[index].likes = this.posts[index].likes.filter((like) => like.userId !== this.$store.state.auth.user.userId)
     }
   },
 
-  mounted () {
-    if (!this.currentUser) {
-      this.$router.push('/login')
+  async created () {
+    const posts = await postsApi.getFeedPosts(this.page, this.size, this.username)
+    this.totalPages = posts.totalPages
+    this.posts = posts.rows
+
+    if (this.posts.length < 1) {
+      this.loadingMessage = 'Il n y a pas encore de publications à afficher'
     }
   }
 }
 </script>
-
-<style scoped lang="scss">
-ul {
-  list-style-type: none;
-  padding-left: 0;
-  margin-top: 15px;
-
-  li {
-    margin-bottom: 15px;
-    font-size: 1.1rem;
-    font-weight: 700;
-
-    span {
-      font-size: initial;
-      display: block;
-      font-weight: initial;
-    }
-  }
-}
-</style>

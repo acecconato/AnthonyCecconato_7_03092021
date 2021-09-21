@@ -1,6 +1,6 @@
 const hateoas = require('halson');
 const { validate: isUUID } = require('uuid');
-const Sequelize = require('sequelize');
+const { Op } = require('sequelize');
 
 const { getPagination, getPagingData } = require('../services/paginator');
 const errorHandler = require('../services/errorHandler');
@@ -47,7 +47,7 @@ exports.publish = async (req, res) => {
 
 /**
  * Get all posts
- * Accept ?page= query parameter
+ * Accept ?page= and ?size= query parameter
  * @param req
  * @param res
  * @param next
@@ -61,6 +61,72 @@ exports.getAllPosts = async (req, res) => {
     const count = await Posts.count();
 
     const datas = await Posts.findAll({
+      offset,
+      limit,
+      include: [
+        { model: Comments, as: 'comments', attributes: ['id'] },
+        { model: Likes, as: 'likes', attributes: ['userId'] },
+        { model: Users, as: 'user', attributes: ['username'] },
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+
+    const posts = datas.map((post) => {
+      post.setDataValue('commentsCount', post.comments.length);
+      post.setDataValue('comments', undefined);
+
+      return hateoas(post.dataValues)
+        .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}` })
+        .addLink('get likes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/likes` })
+        .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
+        .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
+        .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
+        .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${post.id}` })
+        .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${post.id}` });
+    });
+
+    const paginatedPosts = getPagingData({ count }, posts, req.baseUrl, page, limit);
+
+    return res.json(paginatedPosts);
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Get all posts related to a user feed
+ * Accept ?page= and ?size= query parameter
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
+exports.getPostsFeed = async (req, res) => {
+  const { username } = req.params;
+
+  if (!username) {
+    return res.status(422).json({ message: 'Le nom d\'utilisateur est requis' });
+  }
+
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+
+  try {
+    const user = await Users.findOne({ where: { username: { [Op.like]: username } }, include: ['feed'] });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur introuvable' });
+    }
+
+    const feed = await user.getFeed();
+
+    if (!feed) {
+      console.error('Unable to get the user feed');
+      return res.status(500).send();
+    }
+
+    const count = await feed.countPosts();
+
+    const datas = await feed.getPosts({
       offset,
       limit,
       include: [

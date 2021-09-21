@@ -6,7 +6,7 @@
       <p class="comments-text">{{ $filters.striptags(comment.content) }}</p>
     </div>
     <div class="comments-report d-flex justify-content-end">
-      <a href="#" v-if="isOwner" class="btn btn-link text-danger"
+      <a href="#" v-if="isOwner || isAdmin" class="btn btn-link text-danger"
          @click.prevent.stop="$emit('delete-comment', this.comment.id)">Supprimer</a>
       <a href="#" v-else class="btn btn-link text-warning" @click.prevent.stop="onCommentReport">Signaler</a>
     </div>
@@ -15,6 +15,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import timeAgo from '@/services/timeAgo'
 import commentsApi from '@/api/comments'
 
@@ -30,6 +31,11 @@ export default {
   },
 
   computed: {
+
+    ...mapGetters({
+      isAdmin: 'auth/isAdmin'
+    }),
+
     author () {
       return (this.comment.user) ? this.comment.user.username : ''
     },
