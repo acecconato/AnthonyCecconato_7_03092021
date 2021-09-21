@@ -1,5 +1,6 @@
 const { Model } = require('sequelize');
 const argon2 = require('argon2');
+const sequelizeTransforms = require('sequelize-transforms');
 
 const { isPasswordInDataBreaches, isStrongPassword } = require('../services/validator');
 
@@ -65,7 +66,6 @@ module.exports = (sequelize, DataTypes) => {
           args: [5, 60],
           msg: 'Email address must have 5 to 60 characters',
         },
-        trim: true
       },
     },
 
@@ -111,7 +111,6 @@ module.exports = (sequelize, DataTypes) => {
           args: /^[a-z0-9]+$/i,
           msg: 'Username syntax is not valid. Only accept alphanumerical characters',
         },
-        trim: true
       },
     },
 
@@ -163,6 +162,8 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
   });
+
+  sequelizeTransforms(Users);
 
   return Users;
 };

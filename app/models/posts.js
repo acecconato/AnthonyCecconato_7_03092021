@@ -1,6 +1,5 @@
-const {
-  Model,
-} = require('sequelize');
+const { Model } = require('sequelize');
+const sequelizeTransforms = require('sequelize-transforms');
 
 module.exports = (sequelize, DataTypes) => {
   class Posts extends Model {
@@ -36,6 +35,7 @@ module.exports = (sequelize, DataTypes) => {
     content: {
       type: DataTypes.TEXT,
       allowNull: false,
+      trim: true,
       validate: {
         notNull: {
           args: true,
@@ -49,7 +49,6 @@ module.exports = (sequelize, DataTypes) => {
           args: [20, 400],
           msg: 'Username must have 20 to 400 characters',
         },
-        trim: true
       },
     },
 
@@ -63,6 +62,8 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Posts',
   });
+
+  sequelizeTransforms(Posts);
 
   return Posts;
 };
