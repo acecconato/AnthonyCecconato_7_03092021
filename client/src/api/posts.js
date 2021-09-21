@@ -145,5 +145,33 @@ export default {
       console.error(e.response)
       throw e.response
     }
+  },
+
+  /**
+   * Share a post
+   * @param postId
+   * @returns {Promise<AxiosResponse<any>>}
+   */
+  async sharePost (postId) {
+    try {
+      return await api.post(`/posts/${postId}/share`)
+    } catch (e) {
+      console.error(e.response)
+      throw e.response
+    }
+  },
+
+  /**
+   * Unshare a post
+   * @param postId
+   * @returns {Promise<AxiosResponse<any>>}
+   */
+  async unsharePost (postId) {
+    try {
+      return await api.delete(`/posts/${postId}/share`)
+    } catch (e) {
+      console.error(e.response)
+      throw e.response
+    }
   }
 }

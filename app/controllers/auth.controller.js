@@ -17,10 +17,13 @@ exports.login = async (req, res) => {
   const { remember } = req.body || false;
 
   try {
-    const user = await Users.findOne({ where: { username: req.body.username } });
+    const user = await Users.findOne({
+      where: { username: req.body.username },
+      include: ['feed'],
+    });
 
     if (!user || !await user.comparePassword(req.body.password)) {
-      return res.status(401).json({ message: 'Bad Credentials' });
+      return res.status(401).json({ message: 'Identifiants incorrects' });
     }
 
     const expiresIn = parseInt(process.env.JWT_EXP);
@@ -39,6 +42,7 @@ exports.login = async (req, res) => {
       role: user.role,
       username: user.username,
       email: user.email,
+      feed: user.feed,
     });
   } catch (e) {
     errorHandler(e, res);

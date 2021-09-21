@@ -5,7 +5,7 @@ const { Op } = require('sequelize');
 const { getPagination, getPagingData } = require('../services/paginator');
 const errorHandler = require('../services/errorHandler');
 const {
-  Posts, Users, Comments, Likes, PostsReports, Feeds,
+  Posts, Users, Comments, Likes, PostsReports, Feeds, Posts_Feeds,
 } = require('../models');
 
 /**
@@ -67,6 +67,7 @@ exports.getAllPosts = async (req, res) => {
         { model: Comments, as: 'comments', attributes: ['id'] },
         { model: Likes, as: 'likes', attributes: ['userId'] },
         { model: Users, as: 'user', attributes: ['username'] },
+        { model: Feeds, as: 'feeds', attributes: ['userId'] },
       ],
       order: [['createdAt', 'DESC']],
     });
@@ -133,6 +134,7 @@ exports.getPostsFeed = async (req, res) => {
         { model: Comments, as: 'comments', attributes: ['id'] },
         { model: Likes, as: 'likes', attributes: ['userId'] },
         { model: Users, as: 'user', attributes: ['username'] },
+        { model: Feeds, as: 'feeds', attributes: ['userId'] },
       ],
       order: [['createdAt', 'DESC']],
     });
@@ -179,6 +181,7 @@ exports.getPostById = async (req, res, next) => {
         where: { id },
         include: [
           { model: Users, as: 'user', attributes: { exclude: 'password' } },
+          { model: Feeds, as: 'feeds', attributes: ['userId'] },
           'comments',
           'likes',
         ],
@@ -485,18 +488,18 @@ exports.sharePost = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     const feed = await Feeds.findOne({ where: { userId: req.user.id } });
 
     if (await feed.hasPost(post)) {
-      return res.status(409).json({ message: 'You already have this post in your feed' });
+      return res.status(409).json({ message: 'Vous avez déjà partagé cette publication' });
     }
 
-    await feed.setPost(post);
+    await feed.addPost(post);
 
-    return res.json({ message: 'Post has been shared in your feed' });
+    return res.json({ message: 'La publication a bien été partagée' });
   } catch (e) {
     errorHandler(e, res);
   }

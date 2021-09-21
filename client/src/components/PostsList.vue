@@ -6,6 +6,8 @@
           @delete-post="$emit('delete-post', $event, post.id)"
           @increase-likes="$emit('increase-likes', $event, post.id)"
           @decrease-likes="$emit('decrease-likes', $event, post.id)"
+          @share-post="$emit('share-post', $event, post.id)"
+          @unshare-post="$emit('unshare-post', $event, post.id)"
           :post="post" />
       </li>
     </ul>
@@ -42,7 +44,13 @@ export default {
     }
   },
 
-  emits: ['delete-post', 'increase-likes', 'decrease-likes']
+  emits: [
+    'delete-post',
+    'increase-likes',
+    'decrease-likes',
+    'share-post',
+    'unshare-post'
+  ]
 }
 </script>
 

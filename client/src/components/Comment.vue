@@ -1,7 +1,16 @@
 <template>
-  <div class="py-4 shadow-3-strong mb-4">
+  <div class="py-4 comments">
     <div class="col-12 comments-content">
-      <h3 class="h5">{{ $filters.striptags(author) }}</h3>
+      <h3 class="h5">
+        <router-link
+          @click="$event.stopImmediatePropagation()"
+          class="h5 card-title"
+          :to="{name: 'Profile', params: {username: this.$filters.striptags(author)}}"
+          :title="'Voir le profil de ' + this.$filters.striptags(author)"
+        >
+          {{$filters.striptags(author) }}
+        </router-link>
+      </h3>
       <p class="comments-createdAt">{{ showDate }}</p>
       <p class="comments-text">{{ $filters.striptags(comment.content) }}</p>
     </div>
@@ -70,6 +79,12 @@ export default {
 
 <style scoped lang="scss">
 .comments {
+
+  &:nth-child(even) {
+    background: rgb(255,255,255);
+    background: linear-gradient(130deg, white 60%, #f4f4f4 100%);
+  }
+
   &-title {
     position: relative;
 

@@ -1,5 +1,5 @@
 <template>
-  <Navbar />
+  <Navbar :isHome="isHome"/>
   <main>
     <router-view></router-view>
   </main>
@@ -16,6 +16,18 @@ export default {
 
   components: {
     Navbar
+  },
+
+  data () {
+    return {
+      isHome: false
+    }
+  },
+
+  watch: {
+    $route (to, from) {
+      this.isHome = (to.path === '/')
+    }
   }
 }
 </script>

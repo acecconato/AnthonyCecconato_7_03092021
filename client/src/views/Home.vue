@@ -24,6 +24,8 @@
           @delete-post="onPostDelete"
           @increase-likes="onIncreaseLikes"
           @decrease-likes="onDecreaseLikes"
+          @share-post="onSharePost"
+          @unshare-post="onUnsharePost"
         />
       </infinite-scroll>
 
@@ -89,7 +91,7 @@ export default {
       }
     },
 
-    async onIncreaseLikes (e, postId) {
+    async onIncreaseLikes (_, postId) {
       const response = await postsApi.like(postId)
       const like = response.data
 
@@ -97,11 +99,35 @@ export default {
       this.posts[index].likes.push(like)
     },
 
-    async onDecreaseLikes (e, postId) {
+    async onDecreaseLikes (_, postId) {
       await postsApi.unlike(postId)
 
       const index = this.posts.findIndex((post) => post.id === postId)
       this.posts[index].likes = this.posts[index].likes.filter((like) => like.userId !== this.$store.state.auth.user.userId)
+    },
+
+    async onSharePost (_, postId) {
+      try {
+        if (confirm('Souhaitez-vous partager cette publication ?')) {
+          await postsApi.sharePost(postId)
+          const index = this.posts.findIndex((post) => post.id === postId)
+          this.posts[index].feeds.push({ userId: this.$store.state.auth.user.userId })
+        }
+      } catch (e) {
+        alert(e.data.message)
+      }
+    },
+
+    async onUnsharePost (_, postId) {
+      try {
+        if (confirm('Souhaitez-vous enlever cette publication de votre profil ?')) {
+          await postsApi.unsharePost(postId)
+          const index = this.posts.findIndex((post) => post.id === postId)
+          this.posts[index].feeds = this.posts[index].feeds.filter((feed) => feed.userId !== this.$store.state.auth.user.userId)
+        }
+      } catch (e) {
+        alert(e.data.message)
+      }
     }
   },
 

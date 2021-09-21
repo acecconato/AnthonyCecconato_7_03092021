@@ -1,9 +1,14 @@
 <template>
   <div class="card mb-3 row g-0">
     <article tabindex="0" @click="onCardClick" class="col-12 card-body">
-      <a class="h5 card-title" href="#">{{
-          $filters.striptags(author)
-        }}
+      <a
+        @click="$event.stopImmediatePropagation()"
+        class="h5 card-title"
+        :href="'/profile/' + this.$filters.striptags(author)"
+        :title="'Voir le profil de ' + this.$filters.striptags(author)"
+      >
+<!--    TODO: Quand on veut recharger les données a chaque changement de route, est-ce la bonne facon d'utiliser <a> au lieu de router-link ? -->
+        {{ $filters.striptags(author) }}
       </a>
 
       <p class="card-subtitle card-createdat">{{ showDate }}</p>
@@ -44,9 +49,25 @@
 
         <div class="position-relative card-bottom-right d-flex flex-row gap-3">
 
-          <div class="card-share">
-            <a href="#" class="text-black" title="Partager dans mon fil d'actualité" @click.prevent="shareClick">
+          <div v-if="!isOwner && !isAlreadyInUserFeed" class="card-share">
+            <a
+              href="#"
+              class="text-black"
+              title="Partager dans mon fil d'actualité"
+              @click.prevent.stop="$emit('share-post', $event, post.id)"
+            >
               <BIconShare/>
+            </a>
+          </div>
+
+          <div v-else-if="!isOwner && isAlreadyInUserFeed" class="card-share">
+            <a
+              href="#"
+              class="text-black"
+              title="Ne plus partager cette publication"
+              @click.prevent.stop="$emit('unshare-post', $event, post.id)"
+            >
+              <BIconShareFill/>
             </a>
           </div>
 
@@ -66,7 +87,8 @@
         class="btn btn-primary btn-floating btn-delete"
         title="Supprimer la publication"
       >
-        <BIconX/> <span class="visually-hidden">Supprimer la publication</span>
+        <BIconX/>
+        <span class="visually-hidden">Supprimer la publication</span>
       </button>
 
       <button
@@ -76,7 +98,8 @@
         class="btn btn-primary btn-floating btn-report"
         title="Signaler la publication"
       >
-        <BIconExclamation/> <span class="visually-hidden">Signaler la publication</span>
+        <BIconExclamation/>
+        <span class="visually-hidden">Signaler la publication</span>
       </button>
     </article>
   </div>
@@ -140,6 +163,10 @@ export default {
 
     commentsCount () {
       return this.post.commentsCount || 0
+    },
+
+    isAlreadyInUserFeed () {
+      return !!this.post.feeds.find((feed) => feed.userId === this.$store.state.auth.user.userId)
     }
   },
 
@@ -156,6 +183,28 @@ export default {
         } catch (e) {
           alert(e.data.message)
         }
+      }
+    },
+
+    // async onShareClick () {
+    //   try {
+    //     if (confirm('Souhaitez-vous partager cette publication ?')) {
+    //       await postsApi.sharePost(this.post.id)
+    //       alert('Publication partagée')
+    //     }
+    //   } catch (e) {
+    //     alert(e.data.message)
+    //   }
+    // },
+
+    async onUnshareClick () {
+      try {
+        if (confirm('Souhaitez-vous enlever cette publication de votre profil ?')) {
+          await postsApi.sharePost(this.post.id)
+          alert('Publication partagée')
+        }
+      } catch (e) {
+        alert(e.data.message)
       }
     }
   },
@@ -244,18 +293,27 @@ article {
     transition: opacity 100ms, transform 150ms;
 
     &:hover {
-      opacity: 0.5;
       transition: opacity 200ms ease-out, transform 300ms ease-out;
-      transform: scale(1.2);
+      transform: scale(1.5);
     }
   }
 
   .btn-delete {
     background: red;
+    color:white;
+    top: 0;
+    right: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .btn-report {
-    background: orange
+    background: transparent;
+    color: orange;
+    top: 0;
+    right: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 }
 </style>

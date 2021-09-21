@@ -14,6 +14,7 @@
           @delete-post="onPostDelete"
           @increase-likes="onIncreaseLikes"
           @decrease-likes="onDecreaseLikes"
+          @unshare-post="onUnsharePost"
         />
       </infinite-scroll>
 
@@ -91,17 +92,33 @@ export default {
 
       const index = this.posts.findIndex((post) => post.id === postId)
       this.posts[index].likes = this.posts[index].likes.filter((like) => like.userId !== this.$store.state.auth.user.userId)
+    },
+
+    async initContent (username) {
+      const posts = await postsApi.getFeedPosts(this.page, this.size, username)
+      this.totalPages = posts.totalPages
+      this.posts = posts.rows
+
+      if (this.posts.length < 1) {
+        this.loadingMessage = 'Il n y a pas encore de publications à afficher'
+      }
+    },
+
+    async onUnsharePost (_, postId) {
+      try {
+        if (confirm('Souhaitez-vous enlever cette publication de votre profil ?')) {
+          await postsApi.unsharePost(postId)
+          const index = this.posts.findIndex((post) => post.id === postId)
+          this.posts = this.posts.filter((post) => post.id !== postId)
+        }
+      } catch (e) {
+        alert(e.data.message)
+      }
     }
   },
 
   async created () {
-    const posts = await postsApi.getFeedPosts(this.page, this.size, this.username)
-    this.totalPages = posts.totalPages
-    this.posts = posts.rows
-
-    if (this.posts.length < 1) {
-      this.loadingMessage = 'Il n y a pas encore de publications à afficher'
-    }
+    this.initContent(this.$route.params.username)
   }
 }
 </script>

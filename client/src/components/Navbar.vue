@@ -11,7 +11,7 @@
         <router-link to="/" class="navbar-brand d-flex justify-content-center flex-column align-items-center mx-auto">
           <img src="../assets/svg/icon.svg" alt="Retour à l'accueil">
           <h1 v-if="isHome">Groupomania</h1>
-          <h2 class="h5" v-else>Groupomania</h2>
+          <h2 class="h1" v-else>Groupomania</h2>
         </router-link>
 
         <div @click="collapse" class="collapse navbar-collapse" id="navbarNav">
@@ -53,6 +53,10 @@ import { Collapse } from 'bootstrap'
 
 export default {
   name: 'Navbar',
+
+  props: {
+    isHome: Boolean
+  },
 
   computed: {
     ...mapGetters({

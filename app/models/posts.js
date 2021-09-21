@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(Comments, { foreignKey: 'postId', as: 'comments', onDelete: 'cascade' });
       this.hasMany(PostsReports, { foreignKey: 'postId', as: 'reports', onDelete: 'cascade' });
       this.hasMany(Likes, { foreignKey: 'postId', as: 'likes', onDelete: 'cascade' });
-      this.belongsToMany(Feeds, { through: Posts_Feeds, foreignKey: 'postId' });
+      this.belongsToMany(Feeds, { through: Posts_Feeds, foreignKey: 'postId', as: 'feeds' });
     }
   }
 
