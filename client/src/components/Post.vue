@@ -1,15 +1,15 @@
 <template>
   <div class="card mb-3 row g-0">
     <article tabindex="0" @click="onCardClick" class="col-12 card-body">
-      <a
+      <router-link
         @click="$event.stopImmediatePropagation()"
         class="h5 card-title"
-        :href="'/profile/' + this.$filters.striptags(author)"
+        :to="{name: 'Profile', params: {username: this.$filters.striptags(author)}}"
         :title="'Voir le profil de ' + this.$filters.striptags(author)"
       >
-<!--    TODO: Quand on veut recharger les données a chaque changement de route, est-ce la bonne facon d'utiliser <a> au lieu de router-link ? -->
+        <!--    TODO: Quand on veut recharger les données a chaque changement de route, est-ce la bonne facon d'utiliser <a> au lieu de router-link ? -->
         {{ $filters.striptags(author) }}
-      </a>
+      </router-link>
 
       <p class="card-subtitle card-createdat">{{ showDate }}</p>
 
@@ -134,7 +134,7 @@ export default {
     }),
 
     showDate () {
-      if (!this.isOwner && this.$route.name === 'Profile' && this.post.Posts_Feeds) {
+      if (this.$route.name === 'Profile' && this.post.Posts_Feeds && this.post.createdAt !== this.post.Posts_Feeds.createdAt) {
         return `Partagé ${timeAgo.format(new Date(this.post.Posts_Feeds.createdAt))}`
       }
 
@@ -282,7 +282,7 @@ article {
 
   .btn-delete {
     background: red;
-    color:white;
+    color: white;
     top: 0;
     right: 0;
     border-radius: 0;

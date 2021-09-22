@@ -7,6 +7,8 @@
         @delete-post="onPostDelete"
         @increase-likes="onIncreaseLikes"
         @decrease-likes="onDecreaseLikes"
+        @share-post="onSharePost"
+        @unshare-post="onUnsharePost"
         v-if="this.post"
         :post="this.post"
       />
@@ -123,6 +125,28 @@ export default {
         if (confirm('Souhaitez-vous vraiment supprimer ce commentaire ?')) {
           await commentsApi.deleteComment(commentId)
           this.comments = this.comments.filter((comment) => comment.id !== commentId)
+        }
+      } catch (e) {
+        alert(e.data.message)
+      }
+    },
+
+    async onSharePost (_, postId) {
+      try {
+        if (confirm('Souhaitez-vous partager cette publication ?')) {
+          await postsApi.sharePost(postId)
+          this.post.feeds.push({ userId: this.$store.state.auth.user.userId })
+        }
+      } catch (e) {
+        alert(e.data.message)
+      }
+    },
+
+    async onUnsharePost (_, postId) {
+      try {
+        if (confirm('Souhaitez-vous enlever cette publication de votre profil ?')) {
+          await postsApi.unsharePost(postId)
+          this.post.feeds = this.post.feeds.filter((feed) => feed.userId !== this.$store.state.auth.user.userId)
         }
       } catch (e) {
         alert(e.data.message)

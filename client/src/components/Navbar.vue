@@ -17,10 +17,12 @@
         <div @click="collapse" class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav">
             <li v-if="isLoggedIn" class="nav-item">
-              <router-link :to="'/profile/' + currentUser.username" class="nav-link" aria-current="page">Ma page</router-link>
+              <router-link to="/" class="nav-link" aria-current="page">Fil d'actualité</router-link>
             </li>
             <li v-if="isLoggedIn" class="nav-item">
-              <router-link to="/" class="nav-link" aria-current="page">Fil d'actualité</router-link>
+              <router-link :to="'/profile/' + currentUser.username" class="nav-link" aria-current="page">
+                Mes partages
+              </router-link>
             </li>
             <li v-if="!isLoggedIn" class="nav-item">
               <router-link to="/login" class="nav-link" aria-current="page">Connexion</router-link>

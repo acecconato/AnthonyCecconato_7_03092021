@@ -3,7 +3,8 @@
 
     <Button type="button" text="Revenir sur la page d'accueil" classes="btn-dark mb-5" @button-click="this.$router.push('/')"/>
 
-    <h2 id="feed-title">Publications partagées par {{ username }}</h2>
+    <h2 v-if="isCurrentUserPage" id="feed-title">Vos publications partagées</h2>
+    <h2 v-else id="feed-title">Publications partagées par {{ username }}</h2>
 
     <div class="container mt-4">
 
@@ -51,8 +52,17 @@ export default {
       page: 0,
       noResult: false,
       message: '',
-      loadingMessage: 'Chargement en cours',
-      username: this.$route.params.username || ''
+      loadingMessage: 'Chargement en cours'
+    }
+  },
+
+  computed: {
+    username () {
+      return this.$route.params.username
+    },
+
+    isCurrentUserPage () {
+      return this.$route.params.username === this.$store.state.auth.user.username
     }
   },
 
@@ -135,6 +145,10 @@ export default {
 
   async created () {
     this.initContent(this.$route.params.username)
+  },
+
+  async beforeRouteUpdate (to) {
+    this.initContent(to.params.username)
   }
 }
 </script>
