@@ -76,6 +76,10 @@ export default {
 <style scoped lang="scss">
 .navbar {
 
+  h1, h2 {
+    font-weight: 700;
+  }
+
   box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
 
   &-toggler {

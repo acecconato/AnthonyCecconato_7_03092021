@@ -1,6 +1,6 @@
 const hateoas = require('halson');
 const { validate: isUUID } = require('uuid');
-const { Op } = require('sequelize');
+const { Op, Sequelize } = require('sequelize');
 
 const { getPagination, getPagingData } = require('../services/paginator');
 const errorHandler = require('../services/errorHandler');
@@ -67,7 +67,7 @@ exports.getAllPosts = async (req, res) => {
         { model: Comments, as: 'comments', attributes: ['id'] },
         { model: Likes, as: 'likes', attributes: ['userId'] },
         { model: Users, as: 'user', attributes: ['username'] },
-        { model: Feeds, as: 'feeds', attributes: ['userId'] },
+        { model: Feeds, as: 'feeds' },
       ],
       order: [['createdAt', 'DESC']],
     });
@@ -130,13 +130,16 @@ exports.getPostsFeed = async (req, res) => {
     const datas = await feed.getPosts({
       offset,
       limit,
+      subQuery: false,
       include: [
         { model: Comments, as: 'comments', attributes: ['id'] },
         { model: Likes, as: 'likes', attributes: ['userId'] },
         { model: Users, as: 'user', attributes: ['username'] },
-        { model: Feeds, as: 'feeds', attributes: ['userId'] },
+        { model: Feeds, as: 'feeds' },
       ],
-      order: [['createdAt', 'DESC']],
+      order: [
+        [Sequelize.literal('Posts_Feeds.createdAt'), 'DESC'],
+      ],
     });
 
     const posts = datas.map((post) => {

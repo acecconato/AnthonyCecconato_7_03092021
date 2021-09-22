@@ -134,6 +134,10 @@ export default {
     }),
 
     showDate () {
+      if (!this.isOwner && this.$route.name === 'Profile' && this.post.Posts_Feeds) {
+        return `Partagé ${timeAgo.format(new Date(this.post.Posts_Feeds.createdAt))}`
+      }
+
       if (this.post.createdAt !== this.post.updatedAt) {
         return `Mis à jour ${timeAgo.format(new Date(this.post.updatedAt))}`
       }
@@ -183,28 +187,6 @@ export default {
         } catch (e) {
           alert(e.data.message)
         }
-      }
-    },
-
-    // async onShareClick () {
-    //   try {
-    //     if (confirm('Souhaitez-vous partager cette publication ?')) {
-    //       await postsApi.sharePost(this.post.id)
-    //       alert('Publication partagée')
-    //     }
-    //   } catch (e) {
-    //     alert(e.data.message)
-    //   }
-    // },
-
-    async onUnshareClick () {
-      try {
-        if (confirm('Souhaitez-vous enlever cette publication de votre profil ?')) {
-          await postsApi.sharePost(this.post.id)
-          alert('Publication partagée')
-        }
-      } catch (e) {
-        alert(e.data.message)
       }
     }
   },

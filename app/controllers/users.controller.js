@@ -171,8 +171,6 @@ exports.updateUserPassword = async (req, res, next) => {
 
   const { old_password: oldPassword, new_password: newPassword } = req.body || undefined;
 
-  console.log(oldPassword, newPassword);
-
   try {
     const user = await Users.findOne({ where: { id } });
 

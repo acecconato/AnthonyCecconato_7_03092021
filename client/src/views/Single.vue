@@ -1,7 +1,7 @@
 <template>
   <section class="container pt-5 mt-4" aria-labelledby="feed-title">
     <div class="container mt-4 ">
-      <Button type="button" text="Retour" classes="btn-dark mb-5" @button-click="this.$router.go(-1)"/>
+      <Button type="button" text="Revenir à la page précédente" classes="btn-dark mb-5" @button-click="this.$router.go(-1)"/>
       <Post
         class="shadow-3 shadow-3-strong"
         @delete-post="onPostDelete"
@@ -80,7 +80,6 @@ export default {
 
   methods: {
     async getPostDatas (postId) {
-      console.log('postId', postId)
       try {
         return await postsApi.getPost(postId)
       } catch (e) {

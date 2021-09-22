@@ -16,6 +16,9 @@
     </div>
 
     <div class="container mt-4">
+
+      <p class="text-muted">Du plus récent au plus ancien</p>
+
       <infinite-scroll v-if="this.posts.length >= 1" @infinite-scroll="loadMorePosts" :noResult="noResult" message="">
         <PostsList
           :no-result="noResult"

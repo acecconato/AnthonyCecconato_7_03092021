@@ -1,10 +1,13 @@
 <template>
   <section class="container pt-5 mt-4" aria-labelledby="feed-title">
-    <h2 id="feed-title">Fil de {{ username }}</h2>
 
-    <Button type="button" text="Retour à l'accueil" classes="btn-dark my-5" @button-click="this.$router.push('/')"/>
+    <Button type="button" text="Revenir sur la page d'accueil" classes="btn-dark mb-5" @button-click="this.$router.push('/')"/>
+
+    <h2 id="feed-title">Publications partagées par {{ username }}</h2>
 
     <div class="container mt-4">
+
+      <p class="text-muted">Partage du plus récent au plus ancien</p>
 
       <infinite-scroll v-if="this.posts.length >= 1" @infinite-scroll="loadMorePosts" :noResult="noResult" message="">
         <PostsList
@@ -15,6 +18,7 @@
           @increase-likes="onIncreaseLikes"
           @decrease-likes="onDecreaseLikes"
           @unshare-post="onUnsharePost"
+          @share-post="onSharePost"
         />
       </infinite-scroll>
 
@@ -110,6 +114,18 @@ export default {
           await postsApi.unsharePost(postId)
           const index = this.posts.findIndex((post) => post.id === postId)
           this.posts = this.posts.filter((post) => post.id !== postId)
+        }
+      } catch (e) {
+        alert(e.data.message)
+      }
+    },
+
+    async onSharePost (_, postId) {
+      try {
+        if (confirm('Souhaitez-vous partager cette publication ?')) {
+          await postsApi.sharePost(postId)
+          const index = this.posts.findIndex((post) => post.id === postId)
+          this.posts[index].feeds.push({ userId: this.$store.state.auth.user.userId })
         }
       } catch (e) {
         alert(e.data.message)

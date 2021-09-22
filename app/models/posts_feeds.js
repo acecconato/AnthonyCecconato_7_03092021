@@ -40,7 +40,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Posts_Feeds',
-    timestamps: false,
+    updatedAt: false,
   });
 
   return Posts_Feeds;

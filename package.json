@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "serve": "node_modules/.bin/nodemon",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "reset": "sequelize db:drop && sequelize db:create && sequelize db:migrate"
   },
   "repository": {
     "type": "git",

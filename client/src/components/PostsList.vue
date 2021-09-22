@@ -1,7 +1,7 @@
 <template>
   <div class="feed px-2">
     <ul>
-      <li class="mb-5 shadow-3 shadow-3-strong" v-for="(post, index) in posts" :key="index">
+      <li class="my-4 shadow-2-strong" v-for="(post, index) in posts" :key="index">
         <Post
           @delete-post="$emit('delete-post', $event, post.id)"
           @increase-likes="$emit('increase-likes', $event, post.id)"
@@ -12,9 +12,8 @@
       </li>
     </ul>
 
-    <p v-if="this.postsLength > 0 && this.noResult" class="alert alert-info shadow-5 rounded-1">
-      Fin du fil d'actualité<br >
-      Il n y a plus de publications à charger
+    <p v-if="this.postsLength > 0 && this.noResult" role="alert">
+      Il n y a plus de publications à afficher
     </p>
   </div>
 </template>
@@ -36,12 +35,6 @@ export default {
       default: 0
     },
     noResult: Boolean
-  },
-
-  methods: {
-    onIncreaseLikes (...args) {
-      console.log(args)
-    }
   },
 
   emits: [
