@@ -1,10 +1,11 @@
 const hateoas = require('halson');
 const { validate: isUUID } = require('uuid');
+const { Sequelize, Op } = require('sequelize');
 
 const { getPagination, getPagingData } = require('../services/paginator');
 const errorHandler = require('../services/errorHandler');
 const {
-  Posts, Comments, CommentsReports,
+  Posts, Comments, CommentsReports, Users,
 } = require('../models');
 
 /**
@@ -36,6 +37,35 @@ exports.getAllComments = async (req, res) => {
     const paginatedComments = getPagingData(datas, comments, req.baseUrl, page, limit);
 
     return res.json(paginatedComments);
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Get all reported comments
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
+exports.getReportedComments = async (req, res) => {
+  try {
+    const comments = await Comments.findAll({
+      attributes: {
+        include: [[Sequelize.fn('COUNT', Sequelize.col('reports.id')), 'nbReports']],
+      },
+      include: [
+        { model: CommentsReports, as: 'reports', attributes: [] },
+        { model: Users, as: 'user', attributes: ['username'] },
+      ],
+      order: [
+        [Sequelize.literal('nbReports'), 'DESC'],
+      ],
+      group: ['id'],
+      having: Sequelize.where(Sequelize.literal('nbReports'), '>', 0),
+    });
+
+    return res.json(comments);
   } catch (e) {
     errorHandler(e, res);
   }
@@ -248,6 +278,29 @@ exports.getCommentReports = async (req, res, next) => {
     const result = getPagingData(datas, datas.rows, req.baseUrl, page, limit);
 
     return res.json(result);
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Delete reports related to a comment
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
+exports.deleteCommentReports = async (req, res) => {
+  try {
+    const reports = await CommentsReports.findAll({
+      attributes: ['id'],
+      where: { commentId: req.params.id },
+    });
+
+    await CommentsReports.destroy({
+      where: { id: { [Op.in]: reports.map((report) => report.id) } },
+    });
+
+    return res.status(204).send();
   } catch (e) {
     errorHandler(e, res);
   }

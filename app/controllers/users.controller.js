@@ -1,5 +1,6 @@
 const hateoas = require('halson');
 const { validate: isUUID } = require('uuid');
+const { Sequelize, Op } = require('sequelize');
 
 const { Users, Feeds } = require('../models');
 const { getPagination, getPagingData } = require('../services/paginator');
@@ -58,7 +59,42 @@ exports.getUserById = async (req, res, next) => {
     const user = await Users.findOne({ where: { id }, attributes: { exclude: ['password'] } });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Utilisateur introuvable' });
+    }
+
+    const result = hateoas(user.dataValues)
+      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/users/${user.id}/report` })
+      .addLink('update', { method: 'PUT', href: `${process.env.apiBaseDir}/users/${user.id}` })
+      .addLink('update-password', { method: 'POST', href: `${process.env.apiBaseDir}/users/${user.id}/update-password` })
+      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/users/${user.id}` });
+
+    res.json(result);
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Get user by username
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
+exports.getUsersByName = async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const users = await Users.findAll({
+      where: {
+        username: { [Op.like]: `%${username}%` },
+      },
+      attributes: { exclude: ['password'] },
+    });
+
+    return res.json(users);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur introuvable' });
     }
 
     const result = hateoas(user.dataValues)

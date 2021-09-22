@@ -8,6 +8,7 @@ const usersController = require('../controllers/users.controller');
 
 router.get('/', usersController.getAllUsers);
 router.get('/:id', usersController.getUserById);
+router.get('/:username', usersController.getUsersByName);
 router.get('/:id/feeds', usersController.getUserFeed);
 
 router.delete('/:id', usersController.deleteUser);

@@ -1,14 +1,5 @@
 <template>
-  <section class="container" id="actions">
-    <div class="row pt-5 mt-4">
-      <div class="col-12">
-        <h2>Rechercher un utilisateur</h2>
-        <SearchUser/>
-      </div>
-    </div>
-  </section>
-
-  <section class="container mt-4" aria-labelledby="feed-title">
+  <section class="container mt-5 py-4" aria-labelledby="feed-title">
     <h2 id="feed-title">Fil d'actualité</h2>
 
     <div class="mt-3 mb-5" id="add-posts">
@@ -43,7 +34,6 @@
 import InfiniteScroll from 'infinite-loading-vue3'
 
 import postsApi from '@/api/posts'
-import SearchUser from '@/components/SearchUser'
 import PostsList from '@/components/PostsList'
 import AddPost from '@/components/AddPost'
 
@@ -51,7 +41,6 @@ export default {
   name: 'Home',
   components: {
     PostsList,
-    SearchUser,
     InfiniteScroll,
     AddPost
   },

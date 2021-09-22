@@ -45,5 +45,18 @@ export default {
     } catch (e) {
       throw e.response
     }
+  },
+
+  /**
+   * Search user by username
+   * @param username
+   * @returns {Promise<AxiosResponse<any>>}
+   */
+  async searchByUsername (username) {
+    try {
+      return await api.get(`/users/${username}`)
+    } catch (e) {
+      throw e.response
+    }
   }
 }

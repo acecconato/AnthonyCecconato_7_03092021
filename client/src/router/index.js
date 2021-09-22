@@ -6,6 +6,9 @@ import Signup from '../views/Signup'
 import Account from '../views/Account'
 import Single from '../views/Single'
 import Profile from '../views/Profile'
+import Admin from '../views/Admin'
+import Search from '../views/Search'
+import PageNotFound from '../views/PageNotFound'
 
 const routes = [
   {
@@ -37,6 +40,21 @@ const routes = [
     path: '/profile/:username',
     name: 'Profile',
     component: Profile
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: Admin
+  },
+  {
+    path: '/search/:username',
+    name: 'Search',
+    component: Search
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'PageNotFound',
+    component: PageNotFound
   }
 ]
 

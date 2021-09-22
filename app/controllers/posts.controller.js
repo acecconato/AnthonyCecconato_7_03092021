@@ -581,3 +581,58 @@ exports.unlikePost = async (req, res, next) => {
     errorHandler(e, res);
   }
 };
+
+/**
+ * Get reported posts
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
+exports.getReportedPosts = async (req, res) => {
+  try {
+    const datas = await Posts.findAll({
+      attributes: {
+        include: [
+          [Sequelize.fn('COUNT', Sequelize.col('reports.id')), 'nbReports'],
+        ],
+      },
+      include: [
+        { model: Users, as: 'user', attributes: ['username'] },
+        { model: PostsReports, as: 'reports', attributes: [] },
+      ],
+      order: [
+        [Sequelize.literal('nbReports'), 'DESC'],
+      ],
+      group: ['id'],
+      having: Sequelize.where(Sequelize.literal('nbReports'), '>', 0),
+    });
+
+    return res.json(datas);
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Delete reports related to a post
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
+exports.deletePostReports = async (req, res) => {
+  try {
+    const reports = await PostsReports.findAll({
+      attributes: ['id'],
+      where: { postId: req.params.id },
+    });
+
+    await PostsReports.destroy({
+      where: { id: { [Op.in]: reports.map((report) => report.id) } },
+    });
+
+    return res.status(204).send();
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};

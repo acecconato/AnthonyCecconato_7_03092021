@@ -18,6 +18,19 @@ export default {
   },
 
   /**
+   * Get reported posts
+   * @returns {Promise<any>}
+   */
+  async getReportedPosts () {
+    try {
+      const response = await api.get('/posts/reports')
+      return response.data
+    } catch (e) {
+      throw e.response
+    }
+  },
+
+  /**
    * Get all posts related to a user's feed
    * @param page
    * @param size
@@ -169,6 +182,20 @@ export default {
   async unsharePost (postId) {
     try {
       return await api.delete(`/posts/${postId}/share`)
+    } catch (e) {
+      console.error(e.response)
+      throw e.response
+    }
+  },
+
+  /**
+   * Delete post reports
+   * @param postId
+   * @returns {Promise<AxiosResponse<any>>}
+   */
+  async deletePostReports (postId) {
+    try {
+      return await api.delete(`/posts/${postId}/reports`)
     } catch (e) {
       console.error(e.response)
       throw e.response

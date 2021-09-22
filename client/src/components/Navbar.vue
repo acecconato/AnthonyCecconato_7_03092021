@@ -14,8 +14,8 @@
           <h2 class="h1" v-else>Groupomania</h2>
         </router-link>
 
-        <div @click="collapse" class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav">
+        <div class="collapse navbar-collapse mb-4" id="navbarNav">
+          <ul class="navbar-nav" @click="this.collapse">
             <li v-if="isLoggedIn" class="nav-item">
               <router-link to="/" class="nav-link" aria-current="page">Fil d'actualité</router-link>
             </li>
@@ -30,6 +30,23 @@
             <li v-if="isLoggedIn" class="nav-item">
               <router-link to="/account" class="nav-link" aria-current="page">Mon compte</router-link>
             </li>
+            <li v-if="isLoggedIn && isAdmin" class="nav-item">
+              <router-link to="/admin" class="nav-link" aria-current="page">Administration</router-link>
+            </li>
+
+            <form class="d-flex my-2" @submit.prevent.stop="onSearchSubmit">
+              <input
+                @click.prevent.stop
+                v-model="username"
+                name="username"
+                id="search_username"
+                class="form-control me-2"
+                type="search"
+                placeholder="Rechercher un utilisateur"
+                aria-label="Rechercher un utilisateur"
+              >
+              <button class="btn btn-outline-primary" type="submit">Rechercher</button>
+            </form>
 
             <hr class="d-lg-none">
 
@@ -60,9 +77,16 @@ export default {
     isHome: Boolean
   },
 
+  data () {
+    return {
+      username: ''
+    }
+  },
+
   computed: {
     ...mapGetters({
       isLoggedIn: 'auth/isLoggedIn',
+      isAdmin: 'auth/isAdmin',
       currentUser: 'auth/currentUser'
     })
   },
@@ -70,6 +94,13 @@ export default {
   methods: {
     collapse () {
       const collapse = new Collapse(document.getElementById('navbarNav'))
+    },
+
+    async onSearchSubmit () {
+      if (this.username) {
+        await this.$router.push({ name: 'Search', params: { username: this.username } })
+        this.username = ''
+      }
     }
   }
 }
