@@ -52,6 +52,10 @@ h1, .h1, h2, .h2 {
   color: #FF361C;
 }
 
+p.h1 {
+  font-family: Rubik, sans-serif;
+}
+
 #app {
   padding-bottom: 50px;
 }
