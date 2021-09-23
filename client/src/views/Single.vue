@@ -15,7 +15,7 @@
 
       <section class="mt-3 py-4" aria-labelledby="comments-title">
         <div class="comments-title d-flex justify-content-between">
-          <h2 id="comments-title">Commentaires</h2>
+          <h1 id="comments-title">Commentaires</h1>
 
           <div class="comments-title">
             <BIconChatDots/>

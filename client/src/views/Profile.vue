@@ -3,8 +3,8 @@
 
     <Button type="button" text="Revenir sur la page d'accueil" classes="btn-dark mb-5" @button-click="this.$router.push('/')"/>
 
-    <h2 v-if="isCurrentUserPage" id="feed-title">Vos publications partagées</h2>
-    <h2 v-else id="feed-title">Publications partagées par {{ username }}</h2>
+    <h1 v-if="isCurrentUserPage" id="feed-title">Vos publications partagées</h1>
+    <h1 v-else id="feed-title">Publications partagées par {{ username }}</h1>
 
     <div class="container mt-4">
 
@@ -122,8 +122,13 @@ export default {
       try {
         if (confirm('Souhaitez-vous enlever cette publication de votre profil ?')) {
           await postsApi.unsharePost(postId)
-          const index = this.posts.findIndex((post) => post.id === postId)
-          this.posts = this.posts.filter((post) => post.id !== postId)
+
+          if (this.$store.state.auth.user.username !== this.$route.params.username) {
+            const index = this.posts.findIndex((post) => post.id === postId)
+            this.posts[index].feeds = this.posts[index].feeds.filter((feed) => feed.userId !== this.$store.state.auth.user.userId)
+          } else {
+            this.posts = this.posts.filter((post) => post.id !== postId)
+          }
         }
       } catch (e) {
         alert(e.data.message)

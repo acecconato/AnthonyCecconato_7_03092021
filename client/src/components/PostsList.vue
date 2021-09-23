@@ -48,6 +48,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
+@import "~bootstrap";
+
 ul {
   list-style-type: none;
   padding-left: 0;

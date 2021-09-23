@@ -40,7 +40,7 @@ export default {
 }
 
 *:focus-visible {
-  outline: #FFD7D7 solid 4px!important;
+  outline: #DD535B solid 4px!important;
   outline-offset: 4px;
 }
 
@@ -48,12 +48,15 @@ h1, h2, h3, h4, h5 {
   font-family: Rubik, sans-serif;
 }
 
+h1, .h1, h2, .h2 {
+  color: #FF361C;
+}
+
 #app {
   padding-bottom: 50px;
 }
 
 .btn {
-
   &-filter {
     background-color: #333;
     border: 1px solid transparent;
@@ -97,6 +100,11 @@ h1, h2, h3, h4, h5 {
 }
 
 .container {
+
+  @media all and (min-width: 992px) {
+    max-width: 800px;
+  }
+
   .form-actions {
     button, a {
       margin-right: 15px;
@@ -113,5 +121,9 @@ p.invalid-feedback {
 .btn-primary {
   background: #1CB0F6;
   border-color: #1CB0F6;
+}
+
+#back-to-top {
+  background: #012041;
 }
 </style>

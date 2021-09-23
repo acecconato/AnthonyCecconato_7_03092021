@@ -11,11 +11,11 @@
         <router-link to="/" class="navbar-brand d-flex justify-content-center flex-column align-items-center mx-auto">
           <img src="../assets/svg/icon.svg" alt="Retour à l'accueil">
           <h1 v-if="isHome">Groupomania</h1>
-          <h2 class="h1" v-else>Groupomania</h2>
+          <p class="h1" v-else>Groupomania</p>
         </router-link>
 
-        <div class="collapse navbar-collapse mb-4" id="navbarNav">
-          <ul class="navbar-nav" @click="this.collapse">
+        <div class="collapse navbar-collapse flex-wrap justify-content-end" id="navbarNav">
+          <ul class="navbar-nav flex-lg-wrap justify-content-end" @click="this.collapse">
             <li v-if="isLoggedIn" class="nav-item">
               <router-link to="/" class="nav-link" aria-current="page">Fil d'actualité</router-link>
             </li>
@@ -33,33 +33,21 @@
             <li v-if="isLoggedIn && isAdmin" class="nav-item">
               <router-link to="/admin" class="nav-link" aria-current="page">Administration</router-link>
             </li>
-
-            <form class="d-flex my-2" @submit.prevent.stop="onSearchSubmit">
-              <input
-                @click.prevent.stop
-                v-model="username"
-                name="username"
-                id="search_username"
-                class="form-control me-2"
-                type="search"
-                placeholder="Rechercher un utilisateur"
-                aria-label="Rechercher un utilisateur"
-              >
-              <button class="btn btn-outline-primary" type="submit">Rechercher</button>
-            </form>
-
-            <hr class="d-lg-none">
-
-            <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="#">CGU</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="#">Mentions légales</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="#">Politique de confidentialité</a>
-            </li>
           </ul>
+
+          <form class="d-flex my-2" @submit.prevent.stop="onSearchSubmit">
+            <input
+              @click.prevent.stop
+              v-model="username"
+              name="username"
+              id="search_username"
+              class="form-control me-2"
+              type="search"
+              placeholder="Rechercher un utilisateur"
+              aria-label="Rechercher un utilisateur"
+            >
+            <button class="btn btn-outline-primary" type="submit">Rechercher</button>
+          </form>
         </div>
       </div>
     </nav>
@@ -93,7 +81,9 @@ export default {
 
   methods: {
     collapse () {
-      const collapse = new Collapse(document.getElementById('navbarNav'))
+      if (window.innerWidth <= 992) {
+        const collapse = new Collapse(document.getElementById('navbarNav'))
+      }
     },
 
     async onSearchSubmit () {
@@ -107,11 +97,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.navbar {
 
-  h1, h2 {
-    font-weight: 700;
-  }
+@import '~bootstrap';
+
+.navbar {
 
   box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
 
@@ -146,6 +135,12 @@ export default {
       width: fit-content;
       margin: 5px 0;
     }
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  form {
+    width: 60%;
   }
 }
 </style>
