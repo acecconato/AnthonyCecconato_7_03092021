@@ -24,9 +24,6 @@
                 Mes partages
               </router-link>
             </li>
-            <li v-if="!isLoggedIn" class="nav-item">
-              <router-link to="/login" class="nav-link" aria-current="page">Connexion</router-link>
-            </li>
             <li v-if="isLoggedIn" class="nav-item">
               <router-link to="/account" class="nav-link" aria-current="page">Mon compte</router-link>
             </li>
@@ -35,7 +32,7 @@
             </li>
           </ul>
 
-          <form class="d-flex my-2" @submit.prevent.stop="onSearchSubmit">
+          <form v-if="isLoggedIn" class="d-flex my-2" @submit.prevent.stop="onSearchSubmit">
             <input
               @click.prevent.stop
               v-model="username"
