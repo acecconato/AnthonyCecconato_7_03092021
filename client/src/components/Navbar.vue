@@ -101,6 +101,10 @@ export default {
 
   box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
 
+  ul {
+    flex-basis: 100%;
+  }
+
   &-toggler {
     position: absolute;
     left: 15px;
