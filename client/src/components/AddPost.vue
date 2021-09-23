@@ -67,11 +67,11 @@ export default {
         .min(20, 'Doit contenir au moins 20 charactères')
         .max(400, 'Ne doit pas dépasser 400 caractères')
         .strict(false)
-        .trim()
+        .trim(),
 
-      // media: yup.string()
-      //   .url('Vous devez insérer une URL (https://...)')
-      //   .matches(/(.(gif|jpg|jpeg|png)|^)$/i, 'L\'url n\'est pas un gif ou une image valide')
+      media: yup.string()
+        .url('Vous devez insérer une URL (https://...)')
+        .matches(/(.(gif|jpg|jpeg|png)|^)$/i, 'L\'url n\'est pas un gif ou une image valide')
     }
 
     const { resetForm } = useForm()
