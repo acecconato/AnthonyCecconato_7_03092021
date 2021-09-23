@@ -39,15 +39,15 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         notNull: {
           args: true,
-          msg: 'The content cannot be null',
+          msg: 'Le contenu est vide',
         },
         notEmpty: {
           args: true,
-          msg: 'The content is empty',
+          msg: 'Le contenu est vide',
         },
         len: {
           args: [20, 400],
-          msg: 'Username must have 20 to 400 characters',
+          msg: 'Le contenu doit contenir entre 20 et 400 caractères',
         },
       },
     },
