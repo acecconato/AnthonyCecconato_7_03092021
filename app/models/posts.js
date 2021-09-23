@@ -55,7 +55,9 @@ module.exports = (sequelize, DataTypes) => {
     media: {
       type: DataTypes.TEXT,
       allowNull: true,
-      // TODO VALIDATION NE FONCTIONNE PAS -> BUG SEQUELIZE -> PAS POSSIBLE DE METTRE Empty ou isUrl
+      validate: {
+        isUrl: true,
+      },
     },
 
   }, {
