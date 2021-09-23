@@ -89,7 +89,7 @@ exports.getCommentById = async (req, res, next) => {
     const comment = await Comments.findOne({ where: { id } });
 
     if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
+      return res.status(404).json({ message: 'Commentaire introuvable' });
     }
 
     const result = hateoas(comment.dataValues)
@@ -115,7 +115,7 @@ exports.addComment = async (req, res) => {
     const post = await Posts.findOne({ where: { id: req.body.postId } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     const comment = await post.createComment({ content: req.body.content, userId: req.user.id });
@@ -154,12 +154,12 @@ exports.updateComment = async (req, res, next) => {
     const comment = await Comments.findOne({ where: { id } });
 
     if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
+      return res.status(404).json({ message: 'Commentaire introuvable' });
     }
 
     // Must be the owner or an admin
     if (req.user.id !== comment.userId && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Insufficient rights' });
+      return res.status(403).json({ message: 'Permissions insuffisantes' });
     }
 
     comment.content = content || comment.content;
@@ -197,12 +197,12 @@ exports.deleteComment = async (req, res, next) => {
     const comment = await Comments.findOne({ where: { id } });
 
     if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
+      return res.status(404).json({ message: 'Commentaire introuvable' });
     }
 
     // Must be the owner or an admin
     if (req.user.id !== comment.userId && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Insufficient rights' });
+      return res.status(403).json({ message: 'Permissions insuffisantes' });
     }
 
     await comment.destroy();
@@ -231,12 +231,12 @@ exports.reportComment = async (req, res, next) => {
     const comment = await Comments.findOne({ where: { id } });
 
     if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
+      return res.status(404).json({ message: 'Commentaire introuvable' });
     }
 
     const isAlreadyReported = await CommentsReports.count({ where: { userId: req.user.id, commentId: id } });
     if (isAlreadyReported) {
-      return res.status(409).json({ message: 'You have already reported this comment' });
+      return res.status(409).json({ message: 'Vous avez déjà signalé ce commentaire' });
     }
 
     const report = await comment.createReport({ userId: req.user.id, commentId: id });
@@ -266,7 +266,7 @@ exports.getCommentReports = async (req, res, next) => {
     const comment = await Comments.findOne({ where: { id } });
 
     if (!comment) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Commentaire introuvable' });
     }
 
     const datas = await CommentsReports.findAndCountAll({

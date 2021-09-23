@@ -128,12 +128,12 @@ exports.deleteUser = async (req, res, next) => {
     const user = await Users.findOne({ where: { id } });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Utilisateur introuvable' });
     }
 
     // Must be the owner or an admin
     if (req.user.id !== id && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Insufficient rights' });
+      return res.status(403).json({ message: 'Permissions insuffisantes' });
     }
 
     await user.destroy();
@@ -169,7 +169,7 @@ exports.updateUser = async (req, res, next) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Utilisateur introuvable' });
     }
 
     user.username = username || user.username;
@@ -211,18 +211,18 @@ exports.updateUserPassword = async (req, res, next) => {
     const user = await Users.findOne({ where: { id } });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Utilisateur introuvable' });
     }
 
     // Must be the owner or an admin
     if (req.user.id !== id && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Insufficient rights' });
+      return res.status(403).json({ message: 'Permissions insuffisantes' });
     }
 
     // An admin can change a password without knowing the old one
     if (req.user.role !== 'admin') {
       if (!oldPassword || !newPassword) {
-        return res.status(400).json({ message: 'You need to specify the old_password and the new_password parameters' });
+        return res.status(400).json({ message: 'Vous devez spécifier le old_password et le new_password' });
       }
 
       if (!await user.comparePassword(oldPassword) && req.user.role !== 'admin') {
@@ -237,7 +237,7 @@ exports.updateUserPassword = async (req, res, next) => {
     user.password = newPassword;
     await user.save();
 
-    return res.json({ message: 'The password has been updated' });
+    return res.json({ message: 'Le mot de passe a été mis à jour' });
   } catch (e) {
     errorHandler(e, res);
   }
@@ -264,7 +264,7 @@ exports.getUserFeed = async (req, res, next) => {
     const feed = await Feeds.findOne({ where: { userId: id } });
 
     if (!feed) {
-      return res.status(404).json('User not found');
+      return res.status(404).json('Utilisateur introuvable');
     }
 
     const count = await feed.countPosts();

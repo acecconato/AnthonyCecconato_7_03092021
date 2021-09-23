@@ -19,7 +19,7 @@ exports.publish = async (req, res) => {
     const user = await Users.findOne({ where: { id: req.user.id } });
 
     if (!user) {
-      return res.status(404).json({ message: 'Current user not found' });
+      return res.status(404).json({ message: 'Utilisateur introuvable' });
     }
 
     const datas = await user.createPost(req.body, { fields: ['content', 'media'] });
@@ -192,7 +192,7 @@ exports.getPostById = async (req, res, next) => {
     );
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     post.setDataValue('commentsCount', post.comments.length || 0);
@@ -229,12 +229,12 @@ exports.deletePost = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     // Must be the owner or an admin
     if (req.user.id !== post.userId && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Insufficient rights' });
+      return res.status(403).json({ message: 'Permissions insuffisantes' });
     }
 
     await post.destroy();
@@ -265,12 +265,12 @@ exports.updatePost = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     // Must be the owner or an admin
     if (req.user.id !== post.userId && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Insufficient rights' });
+      return res.status(403).json({ message: 'Permissions insuffisantes' });
     }
 
     post.content = content || post.content;
@@ -311,7 +311,7 @@ exports.getPostLikes = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id }, include: ['likes'] });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     return res.json(post.likes);
@@ -335,19 +335,6 @@ exports.getPostComments = async (req, res, next) => {
   }
 
   try {
-    // const post = await Posts.findOne({
-    //   where: { id },
-    //   include: [{
-    //     model: Comments,
-    //     as: 'comments',
-    //     include: [{
-    //       model: Users,
-    //       as: 'user',
-    //     }],
-    //   }],
-    //   order: [['createdAt', 'ASC']],
-    // });
-
     const comments = await Comments.findAll({
       where: { postId: id },
       include: ['user'],
@@ -387,7 +374,7 @@ exports.handleLike = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     const like = await Likes.findOne({ where: { userId: req.user.id, postId: id } });
@@ -397,7 +384,7 @@ exports.handleLike = async (req, res, next) => {
       return res.status(201).json(newLike);
     }
 
-    return res.status(409).json({ message: 'You already liked this post' });
+    return res.status(409).json({ message: 'Vous avez déjà aimé cette publication' });
   } catch (e) {
     errorHandler(e, res);
   }
@@ -456,7 +443,7 @@ exports.getPostReports = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     const datas = await PostsReports.findAndCountAll({
@@ -526,22 +513,22 @@ exports.unsharePost = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     if (post.userId === req.user.id) {
-      return res.status(403).json({ message: 'You can\'t unshare your own post' });
+      return res.status(403).json({ message: 'Vous ne pouvez pas ne plus partager votre publication' });
     }
 
     const feed = await Feeds.findOne({ where: { userId: req.user.id } });
 
     if (!await feed.hasPost(post)) {
-      return res.status(409).json({ message: 'The post is not inside the feed' });
+      return res.status(409).json({ message: 'La publication n\'est pas dans le fil d\'actualité' });
     }
 
     await feed.removePost(post);
 
-    return res.json({ message: 'Post has been unshared from your feed' });
+    return res.json({ message: 'La publication a bien été enlevé de votre fil d\'actualité' });
   } catch (e) {
     errorHandler(e, res);
   }
@@ -565,18 +552,18 @@ exports.unlikePost = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     const like = await Likes.findOne({ where: { userId: req.user.id, postId: id } });
 
     if (!like) {
-      return res.status(404).json({ message: 'Can\'t unlike something not liked' });
+      return res.status(404).json({ message: 'Vous n\'avez pas aimé la publication' });
     }
 
     await like.destroy();
 
-    return res.json({ message: 'The post has been unliked' });
+    return res.json({ message: 'Vous avez enlevé votre j\'aime de la publication' });
   } catch (e) {
     errorHandler(e, res);
   }
