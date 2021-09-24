@@ -14,17 +14,22 @@ const { revokeAccess } = require('../middlewares/authenticate.middleware');
  * @return {Promise<*>}
  */
 exports.login = async (req, res) => {
+  const { remember } = req.body || false;
+
   try {
-    const user = await Users.findOne({ where: { username: req.body.username } });
+    const user = await Users.findOne({
+      where: { username: req.body.username },
+      include: ['feed'],
+    });
 
     if (!user || !await user.comparePassword(req.body.password)) {
-      return res.status(401).json({ message: 'Bad Credentials' });
+      return res.status(401).json({ message: 'Identifiants incorrects' });
     }
 
     const expiresIn = parseInt(process.env.JWT_EXP);
 
     const accessToken = jwt.sign({ uuid: user.id, role: user.role }, process.env.SECRET, { expiresIn });
-    const refreshToken = await RefreshTokens.createToken(user);
+    const refreshToken = (remember) ? await RefreshTokens.createToken(user) : undefined;
 
     /* Used for revoke access:
     * We store the current access and refresh tokens, so we can check their validity in our authentication middleware */
@@ -34,6 +39,10 @@ exports.login = async (req, res) => {
       userId: user.id,
       accessToken,
       refreshToken,
+      role: user.role,
+      username: user.username,
+      email: user.email,
+      feed: user.feed,
     });
   } catch (e) {
     errorHandler(e, res);
@@ -51,7 +60,7 @@ exports.logout = async (req, res) => {
     const user = await Users.findOne({ where: { id: req.user.id } });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Utilisateur introuvable' });
     }
 
     await revokeAccess(user);
@@ -96,19 +105,19 @@ exports.refreshToken = async (req, res, next) => {
   const { refreshToken: requestToken } = req.body;
 
   if (requestToken === null) {
-    return res.status(403).json({ message: 'Refresh token is required' });
+    return res.status(403).json({ message: 'Le refresh token est expiré' });
   }
 
   try {
     const refreshToken = await RefreshTokens.findOne({ where: { token: requestToken } });
 
     if (!refreshToken) {
-      return res.status(403).json({ message: 'The refresh token is not registered' });
+      return res.status(403).json({ message: 'Le refresh token n\'est pas enregistré' });
     }
 
     if (await refreshToken.isExpired()) {
       refreshToken.destroy();
-      return res.status(403).json({ message: 'Refresh token is expired. You need to login again' });
+      return res.status(403).json({ message: 'Le refresh token est expiré, vous devez vous reconnecter' });
     }
 
     const expiresIn = parseInt(process.env.JWT_EXP);
@@ -118,14 +127,16 @@ exports.refreshToken = async (req, res, next) => {
 
     const cachedToken = JSON.parse(cache.getItem(`jwt${user.id}`));
     if (cachedToken && cachedToken.isRevoked && cachedToken.isRevoked === true) {
-      return res.status(403).json({ message: 'The token is revoked' });
+      return res.status(403).json({ message: 'Le refresh token est révoqué' });
     }
 
     cache.setItem(`jwt${user.id}`, JSON.stringify({ accessToken: newAccessToken, refreshToken: refreshToken.token, isRevoked: false }));
 
     return res.json({
+      userId: user.id,
       accessToken: newAccessToken,
       refreshToken: refreshToken.token,
+      role: user.role,
     });
   } catch (e) {
     errorHandler(e, res);

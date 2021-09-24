@@ -8,10 +8,14 @@ class Paginator {
    * @return {{offset: number, limit: number}}
    */
   getPagination(page, size) {
-    const limit = size ? +size : parseInt(process.env.ITEMS_PER_PAGE);
+    let limit = size ? +size : process.env.ITEMS_PER_PAGE;
     const offset = page ? page * limit : 0;
 
-    return { limit, offset };
+    if (+size > +process.env.ITEMS_PER_PAGE) {
+      limit = 3;
+    }
+
+    return { limit: parseInt(limit), offset: parseInt(offset) };
   }
 
   /**
@@ -26,7 +30,11 @@ class Paginator {
   getPagingData(datas, rows, url, page, limit) {
     const { count: totalItems } = datas;
     const currentPage = page ? +page : 0;
-    const totalPages = Math.ceil(totalItems / limit) - 1;
+    let totalPages = Math.ceil(totalItems / limit) - 1;
+
+    if (totalPages < 0) {
+      totalPages = 0;
+    }
 
     const _links = hateoas({})
       .addLink('next page', { method: 'GET', url: `${url}?page=${+currentPage + 1}` });

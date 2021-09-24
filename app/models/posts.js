@@ -1,6 +1,5 @@
-const {
-  Model,
-} = require('sequelize');
+const { Model } = require('sequelize');
+const sequelizeTransforms = require('sequelize-transforms');
 
 module.exports = (sequelize, DataTypes) => {
   class Posts extends Model {
@@ -10,14 +9,14 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate({
-      Users, Comments, PostsReports, Votes, Feeds, Posts_Feeds,
+      Users, Comments, PostsReports, Likes, Feeds, Posts_Feeds,
     }) {
       // define association here
       this.belongsTo(Users, { foreignKey: 'userId', as: 'user' });
       this.hasMany(Comments, { foreignKey: 'postId', as: 'comments', onDelete: 'cascade' });
       this.hasMany(PostsReports, { foreignKey: 'postId', as: 'reports', onDelete: 'cascade' });
-      this.hasMany(Votes, { foreignKey: 'postId', as: 'votes', onDelete: 'cascade' });
-      this.belongsToMany(Feeds, { through: Posts_Feeds, foreignKey: 'postId' });
+      this.hasMany(Likes, { foreignKey: 'postId', as: 'likes', onDelete: 'cascade' });
+      this.belongsToMany(Feeds, { through: Posts_Feeds, foreignKey: 'postId', as: 'feeds' });
     }
   }
 
@@ -36,19 +35,28 @@ module.exports = (sequelize, DataTypes) => {
     content: {
       type: DataTypes.TEXT,
       allowNull: false,
+      trim: true,
       validate: {
         notNull: {
           args: true,
-          msg: 'The content cannot be null',
+          msg: 'Le contenu est vide',
         },
         notEmpty: {
           args: true,
-          msg: 'The content is empty',
+          msg: 'Le contenu est vide',
         },
         len: {
           args: [20, 400],
-          msg: 'Username must have 20 to 400 characters',
+          msg: 'Le contenu doit contenir entre 20 et 400 caractères',
         },
+      },
+    },
+
+    media: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      validate: {
+        isUrl: true,
       },
     },
 
@@ -56,6 +64,8 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Posts',
   });
+
+  sequelizeTransforms(Posts);
 
   return Posts;
 };

@@ -1,6 +1,5 @@
-const {
-  Model,
-} = require('sequelize');
+const { Model } = require('sequelize');
+const sequelizeTransforms = require('sequelize-transforms');
 
 module.exports = (sequelize, DataTypes) => {
   class Comments extends Model {
@@ -26,18 +25,19 @@ module.exports = (sequelize, DataTypes) => {
     content: {
       type: DataTypes.STRING(160),
       allowNull: false,
+      trim: true,
       validate: {
         notNull: {
           args: true,
-          msg: 'The content cannot be null',
+          msg: 'Le contenu est vide',
         },
         notEmpty: {
           args: true,
-          msg: 'The content is empty',
+          msg: 'Le contenu est vide',
         },
         len: {
           args: [5, 160],
-          msg: 'Username must have 5 to 160 characters',
+          msg: 'Le contenu doit comporter entre 5 et 160 caractères',
         },
       },
     },
@@ -54,5 +54,8 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Comments',
   });
+
+  sequelizeTransforms(Comments);
+
   return Comments;
 };

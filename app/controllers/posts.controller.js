@@ -1,11 +1,11 @@
 const hateoas = require('halson');
 const { validate: isUUID } = require('uuid');
-const Sequelize = require('sequelize');
+const { Op, Sequelize } = require('sequelize');
 
 const { getPagination, getPagingData } = require('../services/paginator');
 const errorHandler = require('../services/errorHandler');
 const {
-  Posts, Users, Comments, Votes, PostsReports, Feeds,
+  Posts, Users, Comments, Likes, PostsReports, Feeds, Posts_Feeds,
 } = require('../models');
 
 /**
@@ -19,16 +19,20 @@ exports.publish = async (req, res) => {
     const user = await Users.findOne({ where: { id: req.user.id } });
 
     if (!user) {
-      return res.status(404).json({ message: 'Current user not found' });
+      return res.status(404).json({ message: 'Utilisateur introuvable' });
     }
 
-    const datas = await user.createPost(req.body, { fields: ['content'] });
+    const datas = await user.createPost(req.body, { fields: ['content', 'media'] });
     const feed = await user.getFeed();
     await feed.addPost(datas);
 
+    datas.setDataValue('commentsCount', 0);
+    datas.setDataValue('user', user);
+    datas.setDataValue('likes', []);
+
     const post = hateoas(datas.dataValues)
       .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}` })
-      .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/votes` })
+      .addLink('get likes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/likes` })
       .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/comments` })
       .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${datas.id}/reports` })
       .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${datas.id}/reports` })
@@ -43,7 +47,7 @@ exports.publish = async (req, res) => {
 
 /**
  * Get all posts
- * Accept ?page= query parameter
+ * Accept ?page= and ?size= query parameter
  * @param req
  * @param res
  * @param next
@@ -57,31 +61,100 @@ exports.getAllPosts = async (req, res) => {
     const count = await Posts.count();
 
     const datas = await Posts.findAll({
-      subQuery: false,
       offset,
       limit,
-      attributes: {
-        include: [
-          [Sequelize.fn('COUNT', Sequelize.col('comments.id')), 'commentsCount'],
-        ],
-      },
       include: [
-        { model: Comments, as: 'comments', attributes: [] },
-        { model: Votes, as: 'votes', attributes: ['vote'] },
+        { model: Comments, as: 'comments', attributes: ['id'] },
+        { model: Likes, as: 'likes', attributes: ['userId'] },
         { model: Users, as: 'user', attributes: ['username'] },
+        { model: Feeds, as: 'feeds' },
       ],
       order: [['createdAt', 'DESC']],
-      group: ['id'],
     });
 
-    const posts = datas.map((post) => hateoas(post.dataValues)
-      .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}` })
-      .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/votes` })
-      .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
-      .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
-      .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
-      .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${post.id}` })
-      .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${post.id}` }));
+    const posts = datas.map((post) => {
+      post.setDataValue('commentsCount', post.comments.length);
+      post.setDataValue('comments', undefined);
+
+      return hateoas(post.dataValues)
+        .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}` })
+        .addLink('get likes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/likes` })
+        .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
+        .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
+        .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
+        .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${post.id}` })
+        .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${post.id}` });
+    });
+
+    const paginatedPosts = getPagingData({ count }, posts, req.baseUrl, page, limit);
+
+    return res.json(paginatedPosts);
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Get all posts related to a user feed
+ * Accept ?page= and ?size= query parameter
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
+exports.getPostsFeed = async (req, res) => {
+  const { username } = req.params;
+
+  if (!username) {
+    return res.status(422).json({ message: 'Le nom d\'utilisateur est requis' });
+  }
+
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+
+  try {
+    const user = await Users.findOne({ where: { username: { [Op.like]: username } }, include: ['feed'] });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur introuvable' });
+    }
+
+    const feed = await user.getFeed();
+
+    if (!feed) {
+      console.error('Unable to get the user feed');
+      return res.status(500).send();
+    }
+
+    const count = await feed.countPosts();
+
+    const datas = await feed.getPosts({
+      offset,
+      limit,
+      subQuery: false,
+      include: [
+        { model: Comments, as: 'comments', attributes: ['id'] },
+        { model: Likes, as: 'likes', attributes: ['userId'] },
+        { model: Users, as: 'user', attributes: ['username'] },
+        { model: Feeds, as: 'feeds' },
+      ],
+      order: [
+        [Sequelize.literal('Posts_Feeds.createdAt'), 'DESC'],
+      ],
+    });
+
+    const posts = datas.map((post) => {
+      post.setDataValue('commentsCount', post.comments.length);
+      post.setDataValue('comments', undefined);
+
+      return hateoas(post.dataValues)
+        .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}` })
+        .addLink('get likes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/likes` })
+        .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
+        .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
+        .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
+        .addLink('update', { method: 'PATCH', href: `${process.env.apiBaseDir}/posts/${post.id}` })
+        .addLink('delete', { method: 'DELETE', href: `${process.env.apiBaseDir}/posts/${post.id}` });
+    });
 
     const paginatedPosts = getPagingData({ count }, posts, req.baseUrl, page, limit);
 
@@ -111,18 +184,21 @@ exports.getPostById = async (req, res, next) => {
         where: { id },
         include: [
           { model: Users, as: 'user', attributes: { exclude: 'password' } },
+          { model: Feeds, as: 'feeds', attributes: ['userId'] },
           'comments',
-          'votes',
+          'likes',
         ],
       },
     );
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
+    post.setDataValue('commentsCount', post.comments.length || 0);
+
     const result = hateoas(post.dataValues)
-      .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/votes` })
+      .addLink('get likes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/likes` })
       .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
       .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
       .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
@@ -153,12 +229,12 @@ exports.deletePost = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     // Must be the owner or an admin
     if (req.user.id !== post.userId && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Insufficient rights' });
+      return res.status(403).json({ message: 'Permissions insuffisantes' });
     }
 
     await post.destroy();
@@ -183,27 +259,28 @@ exports.updatePost = async (req, res, next) => {
     return next();
   }
 
-  const { content } = req.body || undefined;
+  const { content, media } = req.body || undefined;
 
   try {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     // Must be the owner or an admin
     if (req.user.id !== post.userId && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Insufficient rights' });
+      return res.status(403).json({ message: 'Permissions insuffisantes' });
     }
 
     post.content = content || post.content;
+    post.media = media || post.media;
 
     const datas = await post.save();
 
     const updatedPost = hateoas(datas.dataValues)
       .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}` })
-      .addLink('get votes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/votes` })
+      .addLink('get likes', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/likes` })
       .addLink('get comments', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/comments` })
       .addLink('get reports', { method: 'GET', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
       .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/posts/${post.id}/reports` })
@@ -217,13 +294,13 @@ exports.updatePost = async (req, res, next) => {
 };
 
 /**
- * Get votes related to a post
+ * Get likes related to a post
  * @param req
  * @param res
  * @param next
  * @return {Promise<*>}
  */
-exports.getPostVotes = async (req, res, next) => {
+exports.getPostLikes = async (req, res, next) => {
   const { id } = req.params;
 
   if (!id || !isUUID(id)) {
@@ -231,13 +308,13 @@ exports.getPostVotes = async (req, res, next) => {
   }
 
   try {
-    const post = await Posts.findOne({ where: { id }, include: ['votes'] });
+    const post = await Posts.findOne({ where: { id }, include: ['likes'] });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
-    return res.json(post.votes);
+    return res.json(post.likes);
   } catch (e) {
     errorHandler(e, res);
   }
@@ -258,13 +335,17 @@ exports.getPostComments = async (req, res, next) => {
   }
 
   try {
-    const post = await Posts.findOne({ where: { id }, include: ['comments'] });
+    const comments = await Comments.findAll({
+      where: { postId: id },
+      include: ['user'],
+      order: [['createdAt', 'ASC']],
+    });
 
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+    if (!comments) {
+      return res.status(404).json({ message: 'Commentaires introuvables' });
     }
 
-    const result = post.comments.map((comment) => hateoas(comment.dataValues)
+    const result = comments.map((comment) => hateoas(comment.dataValues)
       .addLink('self', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}` })
       .addLink('get comment reports', { method: 'GET', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` })
       .addLink('report', { method: 'POST', href: `${process.env.apiBaseDir}/comments/${comment.id}/reports` }));
@@ -276,45 +357,34 @@ exports.getPostComments = async (req, res, next) => {
 };
 
 /**
- * Vote for a post (-1, 0, 1)
+ * Like a post
  * @param req
  * @param res
  * @param next
  * @return {Promise<*>}
  */
-exports.handleVote = async (req, res, next) => {
+exports.handleLike = async (req, res, next) => {
   const { id } = req.params;
 
   if (!id || !isUUID(id)) {
     return next();
   }
 
-  if (typeof req.body.vote === 'number') {
-    return res.status(422).json({ message: 'The vote value must be a string' });
-  }
-
-  if (!req.body.vote || req.body.vote != '-1' || req.body.vote > 1) {
-    return res.status(422).json({ message: 'The vote value must be -1, 0 or 1' });
-  }
-
   try {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
-    const vote = await Votes.findOne({ where: { userId: req.user.id, postId: id } });
+    const like = await Likes.findOne({ where: { userId: req.user.id, postId: id } });
 
-    if (!vote) {
-      const newVote = await post.createVote({ userId: req.user.id, vote: req.body.vote });
-      return res.status(201).json(newVote);
+    if (!like) {
+      const newLike = await post.createLike({ userId: req.user.id });
+      return res.status(201).json(newLike);
     }
 
-    vote.vote = req.body.vote;
-    const updatedVote = await vote.save();
-
-    return res.json(updatedVote);
+    return res.status(409).json({ message: 'Vous avez déjà aimé cette publication' });
   } catch (e) {
     errorHandler(e, res);
   }
@@ -338,12 +408,12 @@ exports.reportPost = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     const isAlreadyReported = await PostsReports.count({ where: { userId: req.user.id, postId: id } });
     if (isAlreadyReported) {
-      return res.json({ message: 'You have already reported this post' });
+      return res.status(409).json({ message: 'Vous avez déjà signalé cette publication' });
     }
 
     const report = await post.createReport({ userId: req.user.id, postId: id });
@@ -373,7 +443,7 @@ exports.getPostReports = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     const datas = await PostsReports.findAndCountAll({
@@ -408,18 +478,18 @@ exports.sharePost = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     const feed = await Feeds.findOne({ where: { userId: req.user.id } });
 
     if (await feed.hasPost(post)) {
-      return res.status(409).json({ message: 'You already have this post in your feed' });
+      return res.status(409).json({ message: 'Vous avez déjà partagé cette publication' });
     }
 
-    await feed.setPost(post);
+    await feed.addPost(post);
 
-    return res.json({ message: 'Post has been shared in your feed' });
+    return res.json({ message: 'La publication a bien été partagée' });
   } catch (e) {
     errorHandler(e, res);
   }
@@ -443,22 +513,112 @@ exports.unsharePost = async (req, res, next) => {
     const post = await Posts.findOne({ where: { id } });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Publication introuvable' });
     }
 
     if (post.userId === req.user.id) {
-      return res.status(403).json({ message: 'You can\'t unshare your own post' });
+      return res.status(403).json({ message: 'Vous ne pouvez pas ne plus partager votre publication' });
     }
 
     const feed = await Feeds.findOne({ where: { userId: req.user.id } });
 
     if (!await feed.hasPost(post)) {
-      return res.status(409).json({ message: 'The post is not inside the feed' });
+      return res.status(409).json({ message: 'La publication n\'est pas dans le fil d\'actualité' });
     }
 
     await feed.removePost(post);
 
-    return res.json({ message: 'Post has been unshared from your feed' });
+    return res.json({ message: 'La publication a bien été enlevé de votre fil d\'actualité' });
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Unlike a post
+ * @param req
+ * @param res
+ * @param next
+ * @return {Promise<*>}
+ */
+exports.unlikePost = async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!id || !isUUID(id)) {
+    return next();
+  }
+
+  try {
+    const post = await Posts.findOne({ where: { id } });
+
+    if (!post) {
+      return res.status(404).json({ message: 'Publication introuvable' });
+    }
+
+    const like = await Likes.findOne({ where: { userId: req.user.id, postId: id } });
+
+    if (!like) {
+      return res.status(404).json({ message: 'Vous n\'avez pas aimé la publication' });
+    }
+
+    await like.destroy();
+
+    return res.json({ message: 'Vous avez enlevé votre j\'aime de la publication' });
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Get reported posts
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
+exports.getReportedPosts = async (req, res) => {
+  try {
+    const datas = await Posts.findAll({
+      attributes: {
+        include: [
+          [Sequelize.fn('COUNT', Sequelize.col('reports.id')), 'nbReports'],
+        ],
+      },
+      include: [
+        { model: Users, as: 'user', attributes: ['username'] },
+        { model: PostsReports, as: 'reports', attributes: [] },
+      ],
+      order: [
+        [Sequelize.literal('nbReports'), 'DESC'],
+      ],
+      group: ['id'],
+      having: Sequelize.where(Sequelize.literal('nbReports'), '>', 0),
+    });
+
+    return res.json(datas);
+  } catch (e) {
+    errorHandler(e, res);
+  }
+};
+
+/**
+ * Delete reports related to a post
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
+exports.deletePostReports = async (req, res) => {
+  try {
+    const reports = await PostsReports.findAll({
+      attributes: ['id'],
+      where: { postId: req.params.id },
+    });
+
+    await PostsReports.destroy({
+      where: { id: { [Op.in]: reports.map((report) => report.id) } },
+    });
+
+    return res.status(204).send();
   } catch (e) {
     errorHandler(e, res);
   }

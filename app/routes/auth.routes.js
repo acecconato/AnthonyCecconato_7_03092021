@@ -10,7 +10,7 @@ const { isLoggedIn, hasRole } = require('../middlewares/authenticate.middleware'
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 6,
+  max: 10,
   onLimitReached: (req, res, options) => {
     log.warn({
       message: 'Authentification rate limit reached',
