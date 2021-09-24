@@ -14,7 +14,7 @@ Install the dependencies
 > `npm install --include=dev`
 
 Configure the database: 
-- **app/config/config.json**
+- **app/config/database.json**
 
 Create the .env file
 > `cp .env.example .env`
