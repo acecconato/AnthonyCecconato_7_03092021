@@ -111,7 +111,7 @@ export default {
 
 .navbar {
 
-  box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
+  box-shadow: rgba(221, 83, 81, 100) 0 10px 0;
 
   ul {
     flex-basis: 100%;

@@ -35,6 +35,8 @@ export default {
 <style lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Karla:wght@200;300;400;700&family=Rubik:wght@400;700&display=swap');
 
+$primaryColor: #012041;
+
 * {
   font-family: Karla, sans-serif;
 }
@@ -42,6 +44,20 @@ export default {
 *:focus-visible {
   outline: #DD535B solid 4px!important;
   outline-offset: 4px;
+}
+
+body {
+  background: $primaryColor;
+}
+
+main {
+  & > .container {
+    border: 3px solid #DD535B;
+  }
+}
+
+.container {
+  background: white;
 }
 
 h1, h2, h3, h4, h5 {
@@ -122,12 +138,8 @@ p.invalid-feedback {
   top: 15px;
 }
 
-.btn-primary {
-  background: #1CB0F6;
-  border-color: #1CB0F6;
-}
-
 #back-to-top {
   background: #012041;
+  border: 3px solid white;
 }
 </style>
