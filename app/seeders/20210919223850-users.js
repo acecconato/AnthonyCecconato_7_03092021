@@ -14,7 +14,7 @@ module.exports = {
         id: user.id,
         email: `demo${i}@demo.fr`,
         password,
-        username: `demo${i}`,
+        username: `Demo${i}`,
         role: 'user',
         createdAt: faker.date.recent(),
         updatedAt: faker.date.recent(),
@@ -24,6 +24,23 @@ module.exports = {
         id: faker.datatype.uuid(),
         userId: user.id,
       });
+    });
+
+    // Create demo admin
+    const adminId = faker.datatype.uuid();
+    users.push({
+      id: adminId,
+      email: 'admin@demo.fr',
+      password,
+      username: 'Admin',
+      role: 'admin',
+      createdAt: faker.date.recent(),
+      updatedAt: faker.date.recent(),
+    });
+
+    feeds.push({
+      id: faker.datatype.uuid(),
+      userId: adminId,
     });
 
     await queryInterface.bulkInsert('Users', users);
