@@ -127,8 +127,6 @@ exports.getPostsFeed = async (req, res) => {
 
     const count = await feed.countPosts();
 
-    console.log(offset, limit); // todo fix
-
     const datas = await feed.getPosts({
       offset,
       limit,
