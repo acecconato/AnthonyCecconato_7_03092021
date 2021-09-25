@@ -1,6 +1,11 @@
 import auth from '../../api/auth'
 
-const user = JSON.parse(localStorage.getItem('user'))
+let user
+try {
+  user = JSON.parse(localStorage.getItem('user'))
+} catch (e) {
+  user = null
+}
 
 const state = () => ((user) ? { status: { loggedIn: true }, user } : { status: { loggedIn: false }, user: {} })
 

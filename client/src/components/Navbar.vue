@@ -25,10 +25,13 @@
               </router-link>
             </li>
             <li v-if="isLoggedIn" class="nav-item">
-              <router-link to="/account" class="nav-link" aria-current="page">Mon compte</router-link>
+              <router-link to="/account" class="nav-link" aria-current="page">{{  currentUser.username }}</router-link>
             </li>
             <li v-if="isLoggedIn && isAdmin" class="nav-item">
               <router-link to="/admin" class="nav-link" aria-current="page">Administration</router-link>
+            </li>
+            <li v-if="isLoggedIn" class="nav-item">
+              <a href="#" @click.prevent.stop="onLogoutClick" class="nav-link" aria-current="page">Déconnexion</a>
             </li>
           </ul>
 
@@ -87,6 +90,15 @@ export default {
       if (this.username) {
         await this.$router.push({ name: 'Search', params: { username: this.username } })
         this.username = ''
+      }
+    },
+
+    async onLogoutClick () {
+      try {
+        await this.$store.dispatch('auth/logout')
+        await this.$router.push('/login')
+      } catch (e) {
+        console.error(e.data)
       }
     }
   }

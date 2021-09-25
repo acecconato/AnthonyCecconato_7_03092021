@@ -49,7 +49,7 @@ export default {
     const schema = {
       content: yup.string()
         .required('Le contenu du commentaire ne doit pas être vide')
-        .min(5, 'Doit contenir au moins 5 charactères')
+        .min(5, 'Doit contenir au moins 5 caractères')
         .max(160, 'Ne doit pas dépasser 160 caractères')
         .strict(false)
         .trim()

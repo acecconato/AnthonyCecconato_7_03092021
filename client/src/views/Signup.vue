@@ -69,12 +69,12 @@ export default {
       username: yup.string()
         .required('Le nom d\'utilisateur ne doit pas être vide')
         .matches(/^[a-z0-9]+$/i, 'Ne peut contenir que des caractères alphanumériques')
-        .min(3, 'Doit contenir au moins 3 charactères')
+        .min(3, 'Doit contenir au moins 3 caractères')
         .max(30, 'Ne doit pas dépasser 30 caractères'),
       email: yup.string()
         .required('L\'adresse mail ne doit pas être vide')
         .email('L\'adresse mail n\'est pas valide')
-        .min(5, 'Doit contenir au moins 5 charactères')
+        .min(5, 'Doit contenir au moins 5 caractères')
         .max(60, 'Ne doit pas dépasser 60 caractères'),
       password: yup.string().required('Le mot de passe ne doit pas être vide'),
       repeat: yup.string()

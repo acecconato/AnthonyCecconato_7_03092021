@@ -64,7 +64,7 @@ export default {
     const schema = {
       content: yup.string()
         .required('Le contenu de la publication ne doit pas être vide')
-        .min(20, 'Doit contenir au moins 20 charactères')
+        .min(20, 'Doit contenir au moins 20 caractères')
         .max(400, 'Ne doit pas dépasser 400 caractères')
         .strict(false)
         .trim(),
