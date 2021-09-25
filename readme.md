@@ -39,3 +39,5 @@ Run the client
 > `npm run serve`
 
 The client is available on http://localhost:8080 (default configuration)
+
+⚠️ If the page is blank and you got an error in the console about the user or the Local Storage, verify that you don't already have a "user" key inside your Local Storage for the localhost:8080. (Chrome: Open web inspector -> Application -> Local Storage) 
