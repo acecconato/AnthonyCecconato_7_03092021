@@ -105,7 +105,7 @@ exports.refreshToken = async (req, res, next) => {
   const { refreshToken: requestToken } = req.body;
 
   if (requestToken === null) {
-    return res.status(403).json({ message: 'Le refresh token est expiré' });
+    return res.status(403).json({ message: 'Le refresh token est introuvable' });
   }
 
   try {
