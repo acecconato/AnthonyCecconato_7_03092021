@@ -2,7 +2,7 @@
   <section class="container pt-5 mt-4" aria-labelledby="single-title">
     <div class="container mt-4 ">
 
-      <h1 id="single-title">Publication de {{ $filters.striptags(post.user.username) }}</h1>
+      <h1 v-if="post" id="single-title">Publication de {{ $filters.striptags(post.user.username) }}</h1>
 
       <Button type="button" text="Revenir à la page précédente" classes="btn-dark mb-5 mt-4" @button-click="this.$router.go(-1)"/>
       <Post
