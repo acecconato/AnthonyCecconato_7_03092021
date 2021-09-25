@@ -21,8 +21,18 @@ Create the .env file
 
 Then create the database and tables from the schemas with: 
 >`npx sequelize db:create && npx sequelize db:migrate`
+>
+> It will install it based on the database configuration.
 
-It will install it based on the database configuration.
+#### Optionally you can generate demo users by doing: `npx sequelize db:seed:all`
+>
+>Demo accounts available:
+>- demo0 - aStrongPassword@0
+>- demo1 - aStrongPassword@0
+>- ...
+>- demo10 - aStrongPassword@0
+>
+>Admin account : admin - aStrongPassword@0
 
 Then run the server
 > `npm run serve`
