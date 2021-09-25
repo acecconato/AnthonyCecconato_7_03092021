@@ -130,16 +130,17 @@ exports.getPostsFeed = async (req, res) => {
     const datas = await feed.getPosts({
       offset,
       limit,
-      subQuery: false,
       include: [
         { model: Comments, as: 'comments', attributes: ['id'] },
         { model: Likes, as: 'likes', attributes: ['userId'] },
         { model: Users, as: 'user', attributes: ['username'] },
         { model: Feeds, as: 'feeds' },
       ],
+      subQuery: false,
       order: [
-        [Sequelize.literal('Posts_Feeds.createdAt'), 'DESC'],
+        [Sequelize.col('Posts_Feeds.createdAt'), 'DESC'],
       ],
+      group: ['Posts.id'],
     });
 
     const posts = datas.map((post) => {
