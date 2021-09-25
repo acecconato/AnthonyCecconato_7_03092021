@@ -15,9 +15,9 @@
       <p class="comments-text">{{ $filters.striptags(comment.content) }}</p>
     </div>
     <div class="comments-report d-flex justify-content-end">
-      <a href="#" v-if="isOwner || isAdmin" class="btn btn-link text-danger"
+      <a href="#" v-if="isOwner || isAdmin" class="btn btn-link text-muted"
          @click.prevent.stop="$emit('delete-comment', this.comment.id)">Supprimer</a>
-      <a href="#" v-else class="btn btn-link text-warning" @click.prevent.stop="onCommentReport">Signaler</a>
+      <a href="#" v-else class="btn btn-link warning" @click.prevent.stop="onCommentReport">Signaler</a>
     </div>
   </div>
 
@@ -95,6 +95,14 @@ export default {
 
   &-report {
     text-align: right;
+
+    a {
+      font-weight: bold;
+
+      &.warning {
+        color: darkred;
+      }
+    }
   }
 
   &-createdAt {

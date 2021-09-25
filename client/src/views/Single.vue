@@ -1,7 +1,10 @@
 <template>
-  <section class="container pt-5 mt-4" aria-labelledby="feed-title">
+  <section class="container pt-5 mt-4" aria-labelledby="single-title">
     <div class="container mt-4 ">
-      <Button type="button" text="Revenir à la page précédente" classes="btn-dark mb-5" @button-click="this.$router.go(-1)"/>
+
+      <h1 id="single-title">Publication de {{ $filters.striptags(post.user.username) }}</h1>
+
+      <Button type="button" text="Revenir à la page précédente" classes="btn-dark mb-5 mt-4" @button-click="this.$router.go(-1)"/>
       <Post
         class="shadow-3 shadow-3-strong"
         @delete-post="onPostDelete"
@@ -15,7 +18,7 @@
 
       <section class="mt-3 py-4" aria-labelledby="comments-title">
         <div class="comments-title d-flex justify-content-between">
-          <h1 id="comments-title">Commentaires</h1>
+          <h2 id="comments-title">Commentaires</h2>
 
           <div class="comments-title">
             <BIconChatDots/>

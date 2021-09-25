@@ -88,7 +88,6 @@
         title="Supprimer la publication"
       >
         <BIconX/>
-        <span class="visually-hidden">Supprimer la publication</span>
       </button>
 
       <button
@@ -99,7 +98,6 @@
         title="Signaler la publication"
       >
         <BIconExclamation/>
-        <span class="visually-hidden">Signaler la publication</span>
       </button>
     </article>
   </div>

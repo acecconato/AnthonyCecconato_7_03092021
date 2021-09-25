@@ -69,7 +69,7 @@
     </section>
 
     <section class="mt-5">
-      <h2>Commentaires signalées</h2>
+      <h2>Commentaires signalés</h2>
 
       <div v-if=errors class="form-group mt-3">
         <p v-for="(error, i) in errors" :key="i" class="alert alert-danger" role="alert">
@@ -79,7 +79,7 @@
 
       <p class="text-muted">Trié par nombre de signalement décroissant</p>
 
-      <p v-if="!this.comments || this.comments.length < 1" class="alert alert-info">Pas de commentaires signalées</p>
+      <p v-if="!this.comments || this.comments.length < 1" class="alert alert-info">Pas de commentaires signalés</p>
       <div v-else class="table-responsive">
         <table class="table">
           <thead>

@@ -1,6 +1,6 @@
 <template>
   <router-link :to="to" v-if="type === 'link'">{{ text }}</router-link>
-  <a href="#" :title="text" v-else :to="to" @click.prevent="$emit('button-click')" :class="classes" class="btn">{{ text }}</a>
+  <a href="#" v-else :to="to" @click.prevent="$emit('button-click')" :class="classes" class="btn">{{ text }}</a>
 </template>
 
 <script>

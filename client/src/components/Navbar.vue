@@ -8,11 +8,11 @@
           <BIconList/>
         </button>
 
-        <router-link to="/" class="navbar-brand d-flex justify-content-center flex-column align-items-center mx-auto">
+        <div class="navbar-brand d-flex justify-content-center flex-column align-items-center mx-auto">
           <img src="../assets/svg/icon.svg" alt="Retour à l'accueil">
           <h1 v-if="isHome">Groupomania</h1>
           <p class="h1" v-else>Groupomania</p>
-        </router-link>
+        </div>
 
         <div class="collapse navbar-collapse flex-wrap justify-content-end" id="navbarNav">
           <ul class="navbar-nav flex-lg-wrap justify-content-end" @click="this.collapse">
