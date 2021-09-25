@@ -96,7 +96,7 @@ export default {
     async onLogoutClick () {
       try {
         await this.$store.dispatch('auth/logout')
-        await this.$router.push('/login')
+        await this.$router.go()
       } catch (e) {
         console.error(e.data)
       }
