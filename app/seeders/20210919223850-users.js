@@ -3,7 +3,7 @@ const argon2 = require('argon2');
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    const password = await argon2.hash('aStrongPassword@');
+    const password = await argon2.hash('aStrongPassword@0');
     const usersIds = [...Array(10)].map((id) => ({ id: faker.datatype.uuid() }));
 
     const users = [];
