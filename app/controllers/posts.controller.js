@@ -127,20 +127,32 @@ exports.getPostsFeed = async (req, res) => {
 
     const count = await feed.countPosts();
 
+    const postsIds = await Posts_Feeds.findAll({
+      where: { feedId: feed.id },
+      attributes: ['postId'],
+    });
+
+    const ids = [];
+    postsIds.forEach((post) => {
+      ids.push(post.postId);
+    });
+
     const datas = await feed.getPosts({
-      offset,
-      limit,
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+      },
       include: [
         { model: Comments, as: 'comments', attributes: ['id'] },
         { model: Likes, as: 'likes', attributes: ['userId'] },
         { model: Users, as: 'user', attributes: ['username'] },
         { model: Feeds, as: 'feeds' },
+        { model: Posts_Feeds, as: 'Posts_Feeds' },
       ],
-      subQuery: false,
       order: [
         [Sequelize.col('Posts_Feeds.createdAt'), 'DESC'],
       ],
-      group: ['Posts.id'],
     });
 
     const posts = datas.map((post) => {
