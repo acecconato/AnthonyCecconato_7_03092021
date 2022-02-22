@@ -1,5 +1,7 @@
 # Groupomania
 
+Le projet final de la formation de Développeur web ; il fallait créer une api rest avec Express, Sequelize et MySQL puis créer une application frontend avec le framework js de notre choix (Vue 3 pour ce projet).
+
 ## Get started
 
 ### Server side (REST Api)
